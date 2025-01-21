@@ -1,0 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+
+h1, h2, h3, h4, h5, h6, p, span, div, a, button{
+    font-family: "Rethink Sans", serif;
+}
