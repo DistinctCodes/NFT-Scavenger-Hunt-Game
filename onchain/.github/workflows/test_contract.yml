@@ -12,6 +12,8 @@ jobs:
       - uses: foundry-rs/setup-snfoundry@v3
         with:
           starknet-foundry-version: 0.31.0
+      - name: Debug workspace
+        run: ls -R
       - name: Run cairo tests
         working-directory: onchain
         run: snforge test
