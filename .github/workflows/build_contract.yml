@@ -1,20 +1,17 @@
-name: build
+name: Build
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
+on: [push, pull_request]
+
 permissions: read-all
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: asdf-vm/actions/install@v3
-      - run: scarb fmt --check
-        working-directory: onchain
-      - run: scarb build
+      - uses: actions/checkout@v3
+      - uses: software-mansion/setup-scarb@v1
+      - name: Check cairo format
+        run: scarb fmt --check
+      - name: Build cairo programs
+        run: scarb build
         working-directory: onchain
