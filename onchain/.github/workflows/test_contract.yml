@@ -13,4 +13,5 @@ jobs:
         with:
           starknet-foundry-version: 0.31.0
       - name: Run cairo tests
+        working-directory: onchain
         run: snforge test
