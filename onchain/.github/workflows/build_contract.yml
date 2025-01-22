@@ -11,8 +11,8 @@ jobs:
       - uses: actions/checkout@v3
       - uses: software-mansion/setup-scarb@v1
       - name: Check cairo format
-        working-directory: onchain
+        working-directory: onchain/
         run: scarb fmt --check
       - name: Build cairo programs
-        working-directory: onchain
+        working-directory: onchain/
         run: scarb build
