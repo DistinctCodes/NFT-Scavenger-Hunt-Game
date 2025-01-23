@@ -1,17 +1,28 @@
-# name: Test
+# name: CONTRACT
 
-# on: [push, pull_request]
-# permissions: read-all
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+permissions: read-all
 
-# jobs:
-#   check:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: software-mansion/setup-scarb@v1
-#       - uses: foundry-rs/setup-snfoundry@v3
-#         with:
-#           starknet-foundry-version: 0.31.0
-#       - name: Run cairo tests
-#         run: snforge test
-#         working-directory: onchain
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: asdf-vm/actions/install@v3
+      - run: scarb fmt --check
+        working-directory: onchain
+      - run: scarb build
+        working-directory: onchain
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: asdf-vm/actions/install@v3
+      - run: snforge test
+        working-directory: onchain
