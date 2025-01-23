@@ -20,3 +20,13 @@ fn test_set_question_per_level() {
     let question_per_level = dispatcher.get_question_per_level(0);
     assert!(question_per_level == 5, "Expected 5 questions per level, got {}", question_per_level);
 }
+
+#[test]
+fn test_addition() {
+    assert(1 == 1, 'wrong answer');
+}
+// #[test]
+// fn test() {
+// }
+
+
