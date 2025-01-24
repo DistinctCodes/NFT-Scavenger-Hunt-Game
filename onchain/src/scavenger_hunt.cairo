@@ -27,7 +27,7 @@ mod ScavengerHunt {
     impl ScavengerHuntImpl of IScavengerHunt<ContractState> {
         fn set_question_per_level(ref self: ContractState, amount: u8) {
             assert!(amount > 0, "Question per level must be greater than 0");
-            self.question_per_level.write(amount);   
+            self.question_per_level.write(amount);
         }
 
         fn get_question_per_level(self: @ContractState, amount: u8) -> u8 {
