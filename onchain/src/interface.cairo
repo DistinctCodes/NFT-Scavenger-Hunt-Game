@@ -40,3 +40,30 @@ pub struct LevelProgress {
     pub attempts: u32,
     pub nft_minted: bool,
 }
+
+impl LevelsIntoFelt252 of Into<Levels, felt252> {
+    fn into(self: Levels) -> felt252 {
+        match self {
+            Levels::Easy => 'EASY',
+            Levels::Medium => 'MEDIUM',
+            Levels::Hard => 'HARD',
+            Levels::Master => 'MASTER',
+        }
+    }
+}
+
+impl Felt252TryIntoLevels of TryInto<felt252, Levels> {
+    fn try_into(self: felt252) -> Option<Levels> {
+        if self == 'EASY' {
+            Option::Some(Levels::Easy)
+        } else if self == 'MEDIUM' {
+            Option::Some(Levels::Medium)
+        } else if self == 'HARD' {
+            Option::Some(Levels::Hard)
+        } else if self == 'MASTER' {
+            Option::Some(Levels::Master)
+        } else {
+            Option::None
+        }
+    }
+}
