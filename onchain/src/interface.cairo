@@ -12,10 +12,12 @@ pub struct Question {
     pub question: ByteArray,
     pub answer: ByteArray, // TODO: Store hashed answer
     pub level: Levels,
+    pub hint: ByteArray,
 }
 
 #[derive(Drop, Copy, Serde, PartialEq, starknet::Store)]
 pub enum Levels {
+    #[default]
     Easy,
     Medium,
     Hard,
@@ -26,6 +28,7 @@ pub enum Levels {
 pub struct PlayerProgress {
     pub address: ContractAddress,
     pub current_level: Levels,
+    pub is_initialized: bool,
 }
 
 #[derive(Drop, Serde, starknet::Store)]
