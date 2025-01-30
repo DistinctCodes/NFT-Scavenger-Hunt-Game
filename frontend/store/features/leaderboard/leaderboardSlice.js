@@ -1,40 +1,42 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-const API_URL = "http://localhost:8000";
-// api call
-export const fetchLeaderboard = createAsyncThunk(
-  "user/leaderboard",
-  async (thunkApi) => {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    return data;
-  }
-);
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-const initialState = {
-  profile: [],
-  loading: false,
-  value: 10,
-};
-
-const leaderboardSlice = createSlice({
-  name: "leaderboard",
-  initialState,
-  reducers: {
-    increment: (state) => {
-      state.value++;
+export const leaderboardApi = createApi({
+  reducerPath: "fetchLeaderboard",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:8000/api",
+    prepareHeaders(headers) {
+      return headers;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(fetchLeaderboard.fulfilled, (state, action) => {
-      state.loading = false;
-      state.profile.push(...action.payload);
-    });
-
-    builder.addCase(fetchLeaderboard.pending, (state, action) => {
-      state.loading = true;
-    });
-  },
+    credentials: "include"
+  }),
+  tagTypes: ["Leaderboard"],
+  endpoints: (builder) => ({
+    fetchLeaderboard: builder.query({
+      query: () => {
+        return {
+          url: `/leaderboard/}`,
+        }
+      },
+      providesTags: (result) =>
+        result ?
+            [
+              ...result.map(({ id }) => ({ type: 'Leaderboard', id })),
+              { type: 'Leaderboard', id: 'LIST' },
+            ]
+          : 
+            [{ type: 'Leaderboard', id: 'LIST' }],
+    }),
+    storeLeaderboard: builder.mutation({
+      query(body) {
+        return {
+          url: `/leaderboard/`,
+          method: 'POST',
+          body,
+        }
+      },
+      invalidatesTags: [{ type: 'Leaderboard', id: 'LIST' }],
+    }),
+  }),
 });
 
-export const { increment } = leaderboardSlice.actions;
-export default leaderboardSlice.reducer;
+export const { useFetchLeaderboardQuery, useStoreLeaderboardMutation } = leaderboardApi;

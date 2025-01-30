@@ -1,40 +1,48 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-const API_URL = "http://localhost:8000";
-// api call
-export const fetchPuzzle = createAsyncThunk(
-  "user/puzzle",
-  async (thunkApi) => {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    return data;
-  }
-);
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-const initialState = {
-  profile: [],
-  loading: false,
-  value: 10,
-};
-
-const puzzleSlice = createSlice({
-  name: "puzzle",
-  initialState,
-  reducers: {
-    increment: (state) => {
-      state.value++;
+export const puzzleApi = createApi({
+  reducerPath: "fetchPuzzle",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:8000/api",
+    prepareHeaders(headers) {
+      return headers;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(fetchPuzzle.fulfilled, (state, action) => {
-      state.loading = false;
-      state.profile.push(...action.payload);
-    });
-
-    builder.addCase(fetchPuzzle.pending, (state, action) => {
-      state.loading = true;
-    });
-  },
+    credentials: "include"
+  }),
+  endpoints: (builder) => ({
+    fetchPuzzles: builder.query({
+      query: () => {
+        return {
+          url: `/puzzles/`,
+        }
+      },
+    }),
+    fetchPuzzle: builder.query({
+      query: (puzzleId) => {
+        return {
+          url: `/puzzles/${puzzleId}`,
+        }
+      },
+    }),
+    createPuzzle: builder.mutation({
+      query(body) {
+        return {
+          url: `/puzzles/`,
+          method: 'POST',
+          body
+        }
+      },
+    }),
+    updatePuzzle: builder.mutation({
+      query(body, puzzleId) {
+        return {
+          url: `/puzzle/${puzzleId}`,
+          method: 'PUT',
+          body
+        }
+      },
+    }),
+  }),
 });
 
-export const { increment } = puzzleSlice.actions;
-export default puzzleSlice.reducer;
+export const { useFetchPuzzlesQuery, useFetchPuzzleQuery, useCreatePuzzleMutation, useUpdatePuzzleMutation } = puzzleApi;

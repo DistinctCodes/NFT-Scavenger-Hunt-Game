@@ -1,40 +1,41 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-const API_URL = "http://localhost:8000";
-// api call
-export const fetchProfile = createAsyncThunk(
-  "user/profile",
-  async (thunkApi) => {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    return data;
-  }
-);
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-const initialState = {
-  profile: [],
-  loading: false,
-  value: 10,
-};
-
-const profileSlice = createSlice({
-  name: "profile",
-  initialState,
-  reducers: {
-    increment: (state) => {
-      state.value++;
+export const profileApi = createApi({
+  reducerPath: "fetchProfile",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:8000/api",
+    prepareHeaders(headers) {
+      return headers;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(fetchProfile.fulfilled, (state, action) => {
-      state.loading = false;
-      state.profile.push(...action.payload);
-    });
-
-    builder.addCase(fetchProfile.pending, (state, action) => {
-      state.loading = true;
-    });
-  },
+    credentials: "include"
+  }),
+  endpoints: (builder) => ({
+    fetchProfile: builder.query({
+      query: (profileId) => {
+        return {
+          url: `/profile/${profileId}`,
+        }
+      },
+    }),
+    createProfile: builder.mutation({
+      query(body) {
+        return {
+          url: `/profile/`,
+          method: 'POST',
+          body
+        }
+      },
+    }),
+    updateProfile: builder.mutation({
+      query(body, profileId) {
+        return {
+          url: `/profile/${profileId}`,
+          method: 'PUT',
+          body
+        }
+      },
+    }),
+  }),
 });
 
-export const { increment } = profileSlice.actions;
-export default profileSlice.reducer;
+export const { useFetchProfileQuery, useCreateProfileMutation, useUpdateProfileMutation } = profileApi;

@@ -1,43 +1,48 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-const API_URL = "http://localhost:8000";
-// api call
-export const fetchReward
- = createAsyncThunk(
-  "user/reward",
-  async (thunkApi) => {
-    const response = await fetch(API_URL);
-    const data = await response.json();
-    return data;
-  }
-);
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-const initialState = {
-  profile: [],
-  loading: false,
-  value: 10,
-};
-
-const rewardSlice = createSlice({
-  name: "reward",
-  initialState,
-  reducers: {
-    increment: (state) => {
-      state.value++;
+export const rewardApi = createApi({
+  reducerPath: "fetchReward",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://localhost:8000/api",
+    prepareHeaders(headers) {
+      return headers;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(fetchReward
-      .fulfilled, (state, action) => {
-      state.loading = false;
-      state.profile.push(...action.payload);
-    });
-
-    builder.addCase(fetchReward
-      .pending, (state, action) => {
-      state.loading = true;
-    });
-  },
+    credentials: "include"
+  }),
+  endpoints: (builder) => ({
+    fetchRewards: builder.query({
+      query: () => {
+        return {
+          url: `/rewards/`,
+        }
+      },
+    }),
+    fetchReward: builder.query({
+      query: (rewardId) => {
+        return {
+          url: `/rewards/${rewardId}`,
+        }
+      },
+    }),
+    createReward: builder.mutation({
+      query(body) {
+        return {
+          url: `/rewards/`,
+          method: 'POST',
+          body
+        }
+      },
+    }),
+    updateReward: builder.mutation({
+      query(body, rewardId) {
+        return {
+          url: `/reward/${rewardId}`,
+          method: 'PUT',
+          body
+        }
+      },
+    }),
+  }),
 });
 
-export const { increment } = rewardSlice.actions;
-export default rewardSlice.reducer;
+export const { useFetchRewardsQuery, useFetchRewardQuery, useCreateRewardMutation, useUpdateRewardMutation } = rewardApi;
