@@ -51,5 +51,21 @@ mod ScavengerHunt {
             self.question_per_level.read()
         }
 
+        fn add_question(
+            ref self: ContractState,
+            level: Levels,
+            question: String,
+            answer: String,
+        ) {
+            self.ownable.assert_only_owner();
+            let question_id = self.question_count.read();
+            self.questions.write(question_id, Question {
+                level,
+                question,
+                answer,
+            });
+            self.questions_by_level.write((level, question_id), question_id);
+            self.question_count.write(question_id + 1);
+        }
     }
 }
