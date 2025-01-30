@@ -2,7 +2,7 @@ use starknet::ContractAddress;
 
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
 
-use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait};
+use onchain::interface::{IScavengerHuntDispatcher,Levels, IScavengerHuntDispatcherTrait};
 
 fn deploy_contract() -> ContractAddress {
     let contract = declare("ScavengerHunt").unwrap().contract_class();
@@ -19,5 +19,19 @@ fn test_set_question_per_level() {
 
     let question_per_level = dispatcher.get_question_per_level(0);
     assert!(question_per_level == 5, "Expected 5 questions per level, got {}", question_per_level);
+}
+
+#[test]
+fn test_add_question() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    dispatcher.set_question_per_level(5);
+
+    let question = "A question";
+    let answer = "An answer";
+    let hint = "A hint";	
+
+    dispatcher.add_question(Levels::Easy, question, answer, hint);
 }
 

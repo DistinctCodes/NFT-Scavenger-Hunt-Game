@@ -59,6 +59,7 @@ mod ScavengerHunt {
             hint: ByteArray,
         ) {
             self.ownable.assert_only_owner();
+            
             let question_id = self.question_count.read();
             let question = Question {
                 question_id,
@@ -68,8 +69,11 @@ mod ScavengerHunt {
                 hint,
             };
             self.questions.write(question_id, question);
-            self.questions_by_level.write((level, question_id), question_id);
             self.question_count.write(question_id + 1);
+        }
+
+        fn get_question(self: @ContractState, question_id: u64) -> Question {
+            self.questions.read(question_id)
         }
     }
 }

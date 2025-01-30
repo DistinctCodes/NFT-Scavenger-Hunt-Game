@@ -11,6 +11,7 @@ pub trait IScavengerHunt<TContractState> {
         answer: ByteArray,
         hint: ByteArray,
     );
+    fn get_question(self: @TContractState, question_id: u64) -> Question;
 }
 
 #[derive(Drop, Serde, starknet::Store)]
