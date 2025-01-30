@@ -2,7 +2,7 @@
 mod ScavengerHunt {
     use starknet::ContractAddress;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        StoragePointerReadAccess, StoragePointerWriteAccess, Map
     };
     use onchain::interface::{IScavengerHunt, Question, Levels, PlayerProgress, LevelProgress};
 
