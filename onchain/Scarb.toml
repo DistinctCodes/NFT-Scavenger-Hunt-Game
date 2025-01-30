@@ -11,7 +11,7 @@ openzeppelin_access = "0.20.0"
 
 [dev-dependencies]
 openzeppelin_utils = "0.20.0"
-snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.30.0" }
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.35.1" }
 
 
 [[target.starknet-contract]]

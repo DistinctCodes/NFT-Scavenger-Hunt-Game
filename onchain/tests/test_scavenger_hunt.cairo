@@ -33,5 +33,12 @@ fn test_add_question() {
     let hint = "A hint";	
 
     dispatcher.add_question(Levels::Easy, question, answer, hint);
+    // Retrieve the question and verify its properties
+    let question_id = 0; // Assuming this is the first question added
+    let added_question = dispatcher.get_question(question_id);
+
+    assert!(added_question.question == "A question", "Wrong question");
+    assert!(added_question.answer == "An answer", "Wrong answer");
+    assert!(added_question.hint == "A hint", "Wrong hint");
 }
 
