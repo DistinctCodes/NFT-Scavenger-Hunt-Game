@@ -36,7 +36,7 @@ mod ScavengerHunt {
             self.question_per_level.read()
         }
 
-        fn initialize_player_progress(ref self: ContractState, player_address: ContractAddress) {
+        fn initialize_player_progress(ref self: ContractState, player_address: ContractAddress)->bool {
             // Check if player is already initialized
             let player_progress = self.player_progress.read(player_address);
             assert!(!player_progress.is_initialized, "Player already initialized");
@@ -62,6 +62,8 @@ mod ScavengerHunt {
             };
 
             self.player_level_progress.write((player_address,Levels::Easy.into()), level_progress);
+
+            true
         }
 
         fn get_player_progress(self: @ContractState, player_address: ContractAddress) -> PlayerProgress {
