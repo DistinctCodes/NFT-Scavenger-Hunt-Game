@@ -4,6 +4,7 @@ use starknet::ContractAddress;
 pub trait IScavengerHunt<TContractState> {
     fn set_question_per_level(ref self: TContractState, amount: u8);
     fn get_question_per_level(self: @TContractState, amount: u8) -> u8;
+    fn initialize_player_progress(ref self: TContractState, player_address: ContractAddress);
 }
 
 #[derive(Drop, Serde, starknet::Store)]
