@@ -54,12 +54,9 @@ mod ScavengerHunt {
             // Store the new question in the `questions` map
             self.questions.write(question_id, new_question);
 
-            // Convert Levels enum to felt252 before using as storage key
-            let level_as_felt = level.into();
-
             // Store the new question by level
 
-            self.questions_by_level.write((level_as_felt, question_id), question_id);
+            self.questions_by_level.write((level.into(), question_id), question_id);
 
             // Emit event
             self.emit(QuestionAdded { question_id, level });
