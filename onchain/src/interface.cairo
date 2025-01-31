@@ -5,6 +5,8 @@ pub trait IScavengerHunt<TContractState> {
     fn set_question_per_level(ref self: TContractState, amount: u8);
     fn get_question_per_level(self: @TContractState, amount: u8) -> u8;
     fn initialize_player_progress(ref self: TContractState, player_address: ContractAddress);
+    fn get_player_progress(self: @TContractState, player_address: ContractAddress) -> PlayerProgress;
+    fn get_level_progress(self: @TContractState, player_address: ContractAddress, level: Levels) -> LevelProgress;
 }
 
 #[derive(Drop, Serde, starknet::Store)]

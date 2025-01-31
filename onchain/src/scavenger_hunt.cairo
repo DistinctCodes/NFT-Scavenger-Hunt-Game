@@ -63,6 +63,14 @@ mod ScavengerHunt {
 
             self.player_level_progress.write((player_address,Levels::Easy.into()), level_progress);
         }
+
+        fn get_player_progress(self: @ContractState, player_address: ContractAddress) -> PlayerProgress {
+            self.player_progress.read(player_address)
+        }
+
+        fn get_level_progress(self: @ContractState, player_address: ContractAddress, level: Levels) -> LevelProgress {
+            self.player_level_progress.read((player_address, level.into()))
+        }
         
     }
 }
