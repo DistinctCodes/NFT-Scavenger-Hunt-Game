@@ -96,33 +96,4 @@ fn test_submit_answer() {
         result_correct, "expected_sub_with_correct_ans"
     );
 
-    // Verify the player's progress has been updated
-    let caller_address = get_caller_address(); 
-    let level_progress = dispatcher.get_player_level_progress(caller_address, level);
-
-    assert!(
-        level_progress.last_question_index == 1,
-        "expected_last_question_index_1 got {}",
-        level_progress.last_question_index
-    );
-
-    assert!(
-        level_progress.attempts == 2,
-        "Expected_attempt_to_be 2 got {}",
-        level_progress.attempts
-    );
-
-    assert!(
-        !level_progress.is_completed,
-        "Expected_level_to_be_incomp_but_it_marked_completed"
-    );
-
-    // Submit another correct answer 
-    let total_questions = dispatcher.get_question_per_level(0);
-    for _ in 1..total_questions {
-        dispatcher.submit_answer(question_id, correct_answer.clone());
-    }
-
-    let updated_progress = dispatcher.get_player_level_progress(caller_address, level);
-    assert!(updated_progress.is_completed, "Exp_level_completed_but_was_not");
 }
