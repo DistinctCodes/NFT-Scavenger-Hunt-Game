@@ -29,65 +29,15 @@ fn test_add_and_get_question() {
 
     // Define test data
     let level = Levels::Easy;
-    let level_as_felt = level.into();
     let question = "What is the capital of France?"; // ByteArray
     let answer = "Paris"; // ByteArray
     let hint = "It starts with 'P'"; // ByteArray
 
     // Add a question
-    dispatcher.add_question(level_as_felt, question.clone(), answer.clone(), hint.clone());
+    dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
 
     // Retrieve the question
-    let retrieved_question: Question = dispatcher
-        .get_question(1); // Assuming the first question has ID 1
-
-    // Assertions to verify the question was added correctly
-    assert!(
-        retrieved_question.question_id == 1,
-        "Expected question ID 1, got {}",
-        retrieved_question.question_id,
-    );
-    assert!(
-        retrieved_question.question == question,
-        "Expected question '{}', got '{}'",
-        question,
-        retrieved_question.question,
-    );
-    assert!(
-        retrieved_question.answer == answer,
-        "Expected answer '{}', got '{}'",
-        answer,
-        retrieved_question.answer,
-    );
-    assert!(
-        retrieved_question.hint == hint,
-        "Expected hint '{}', got '{}'",
-        hint,
-        retrieved_question.hint,
-    );
-}
-
-#[test]
-fn test_add_and_get_question2() {
-    // Deploy the contract
-    let contract_address = deploy_contract();
-    let dispatcher = IScavengerHuntDispatcher { contract_address };
-
-    // Define test data
-    let level = Levels::Easy; // Example: Easy level as an enum variant
-    let level_as_felt = level.into(); // Convert level to felt252
-
-    let question = "What is the capital of France?"; // Question
-    let answer = "Paris"; // Answer
-    let hint = "It starts with 'P'"; // Hint
-
-    // Add a question
-    dispatcher.add_question(level_as_felt, question.clone(), answer.clone(), hint.clone());
-
-    // Since we are adding the first question, we assume it will have ID 1
-    let question_id = 1;
-
-    // Retrieve the question by its ID
+    let question_id = 1; // Assuming the first question has ID 1
     let retrieved_question: Question = dispatcher.get_question(question_id);
 
     // Assertions to verify the question was added correctly
@@ -116,4 +66,3 @@ fn test_add_and_get_question2() {
         retrieved_question.hint,
     );
 }
-
