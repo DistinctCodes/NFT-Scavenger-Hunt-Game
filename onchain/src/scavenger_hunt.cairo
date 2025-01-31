@@ -10,7 +10,7 @@ mod ScavengerHunt {
     struct Storage {
         questions: Map<u64, Question>,
         question_count: u64,
-        questions_by_level: Map<(Levels, u64), u64>, // (levels, index) -> question_id
+        questions_by_level: Map<(felt252, u64), u64>, // (levels, index) -> question_id
         question_per_level: u8,
         player_progress: Map<ContractAddress, PlayerProgress>,
         player_level_progress: Map<
@@ -54,9 +54,12 @@ mod ScavengerHunt {
             // Store the new question in the `questions` map
             self.questions.write(question_id, new_question);
 
+            // Convert Levels enum to felt252 before using as storage key
+            let level_as_felt = level.into();
+
             // Store the new question by level
 
-            self.questions_by_level.write((level, question_id), question_id);
+          self.questions_by_level.write((level_as_felt, question_id), question_id);
 
             // Emit event
             self.emit(QuestionAdded { question_id, level });
@@ -65,6 +68,7 @@ mod ScavengerHunt {
         // Get a question by question_id
         fn get_question(self: @ContractState, question_id: u64) -> Question {
             // Retrieve the question from storage using the question_id
+            
             self.questions.read(question_id)
         }
 
