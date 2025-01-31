@@ -59,7 +59,7 @@ mod ScavengerHunt {
 
             // Store the new question by level
 
-          self.questions_by_level.write((level_as_felt, question_id), question_id);
+            self.questions_by_level.write((level_as_felt, question_id), question_id);
 
             // Emit event
             self.emit(QuestionAdded { question_id, level });
@@ -68,7 +68,7 @@ mod ScavengerHunt {
         // Get a question by question_id
         fn get_question(self: @ContractState, question_id: u64) -> Question {
             // Retrieve the question from storage using the question_id
-            
+
             self.questions.read(question_id)
         }
 
