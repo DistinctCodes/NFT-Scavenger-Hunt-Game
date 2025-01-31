@@ -77,5 +77,11 @@ mod ScavengerHunt {
         fn get_question_per_level(self: @ContractState, amount: u8) -> u8 {
             self.question_per_level.read()
         }
+
+        fn get_question_in_level(self: @ContractState, level: Levels, index: u64) -> Question {
+            let question_id = self.questions_by_level.read((level.into(), index));
+            
+            self.questions.read(question_id)
+        }
     }
 }
