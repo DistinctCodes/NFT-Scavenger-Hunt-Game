@@ -112,3 +112,32 @@ fn test_add_and_get_question_should_panic_with_missing_role() {
     // Add a question
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
 }
+
+#[test]
+fn test_submit_answer() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // Define test data
+    let level = Levels::Easy;
+    let question = "What is 2 + 2?";
+    let correct_answer = "4";
+    let wrong_answer = "5";
+    let hint = "It's an even number";
+
+    // Add a question
+    start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.add_question(level, question.clone(), correct_answer.clone(), hint.clone());
+    stop_cheat_caller_address(contract_address);
+
+    // first question is assigned ID 1
+    let question_id = 1;
+
+    // Submit a wrong answer first
+    let result_wrong = dispatcher.submit_answer(question_id, wrong_answer.clone());
+    assert!(!result_wrong, "expected_sub_with_wrong_ans");
+
+    // Submit  correct answer
+    let result_correct = dispatcher.submit_answer(question_id, correct_answer.clone());
+    assert!(result_correct, "expected_sub_with_correct_ans");
+}
