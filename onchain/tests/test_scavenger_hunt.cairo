@@ -1,8 +1,11 @@
 use starknet::ContractAddress;
+use starknet::get_caller_address;
 
 use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
 
-use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
+use onchain::interface::{
+    IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels, LevelProgress
+};
 
 fn deploy_contract() -> ContractAddress {
     let contract = declare("ScavengerHunt").unwrap().contract_class();
@@ -64,5 +67,61 @@ fn test_add_and_get_question() {
         "Expected hint '{}', got '{}'",
         hint,
         retrieved_question.hint,
+    );
+}
+
+#[test]
+fn test_submit_answer() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // Define test data
+    let level = Levels::Easy;
+    let question = "What is 2 + 2?";
+    let correct_answer = "4";
+    let wrong_answer = "5";
+    let hint = "It's an even number";
+
+    // Add a question
+    dispatcher.add_question(level, question.clone(), correct_answer.clone(), hint.clone());
+
+    // first question is assigned ID 1
+    let question_id = 1;
+
+    // Submit a wrong answer first
+    let result_wrong = dispatcher.submit_answer(question_id, wrong_answer.clone());
+    assert!(!result_wrong, "expected_sub_with_wrong_ans");
+
+    // Submit  correct answer
+    let result_correct = dispatcher.submit_answer(question_id, correct_answer.clone());
+    assert!(result_correct, "expected_sub_with_correct_ans");
+}
+
+#[test]
+fn test_get_question_in_level() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    let level = Levels::Easy;
+    let question = "What is the capital of France?";
+    let answer = "Paris";
+    let hint = "It starts with 'P'";
+
+    dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
+
+    let index = 1_u64;
+    let retrieved_question = dispatcher.get_question_in_level(level, index);
+
+    assert!(
+        retrieved_question.question == question,
+        "Expected question '{}', got '{}'",
+        question,
+        retrieved_question.question,
+    );
+    assert!(
+        retrieved_question.level == level,
+        "Expected level {:?}, got {:?}",
+        level,
+        retrieved_question.level,
     );
 }
