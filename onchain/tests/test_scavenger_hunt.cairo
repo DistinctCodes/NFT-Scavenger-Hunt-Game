@@ -1,6 +1,9 @@
 use starknet::{ContractAddress, contract_address_const};
 
-use snforge_std::{declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address, stop_cheat_caller_address};
+use snforge_std::{
+    declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
+    stop_cheat_caller_address
+};
 
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
 
@@ -108,34 +111,4 @@ fn test_add_and_get_question_should_panic_with_missing_role() {
 
     // Add a question
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
-
-    // Retrieve the question
-    let question_id = 1; // Assuming the first question has ID 1
-    let retrieved_question: Question = dispatcher.get_question(question_id);
-
-    // Assertions to verify the question was added correctly
-    assert!(
-        retrieved_question.question_id == question_id,
-        "Expected question ID {}, got {}",
-        question_id,
-        retrieved_question.question_id,
-    );
-    assert!(
-        retrieved_question.question == question,
-        "Expected question '{}', got '{}'",
-        question,
-        retrieved_question.question,
-    );
-    assert!(
-        retrieved_question.answer == answer,
-        "Expected answer '{}', got '{}'",
-        answer,
-        retrieved_question.answer,
-    );
-    assert!(
-        retrieved_question.hint == hint,
-        "Expected hint '{}', got '{}'",
-        hint,
-        retrieved_question.hint,
-    );
 }

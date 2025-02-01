@@ -1,14 +1,12 @@
 #[starknet::contract]
 mod ScavengerHunt {
     use starknet::ContractAddress;
-    use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, Map,
-    };
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Map,};
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use AccessControlComponent::InternalTrait;
     use onchain::interface::{IScavengerHunt, Question, Levels, PlayerProgress, LevelProgress};
-    
+
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
