@@ -65,4 +65,34 @@ fn test_add_and_get_question() {
         hint,
         retrieved_question.hint,
     );
+
 }
+
+#[test]
+fn test_request_hint() {
+    // Deploy the contract
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // Define test data
+    let level = Levels::Easy;
+    let question = "What is the capital of France?"; // ByteArray
+    let answer = "Paris"; // ByteArray
+    let hint = "It starts with 'P'"; // ByteArray
+
+    // Add a question
+    dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
+
+    // Retrieve the hint for the question
+    let question_id = 1; // Assuming the first question has ID 1
+    let retrieved_hint = dispatcher.request_hint(question_id);
+
+    // Verify that the retrieved hint matches the expected hint
+    assert!(
+        retrieved_hint == hint,
+        "Expected hint '{}', got '{}'",
+        hint,
+        retrieved_hint,
+    );
+}
+
