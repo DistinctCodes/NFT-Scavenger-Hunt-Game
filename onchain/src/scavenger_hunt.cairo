@@ -45,7 +45,8 @@ mod ScavengerHunt {
             answer: ByteArray,
             hint: ByteArray,
         ) {
-            let question_id = self.question_count.read()+ 1; // Increment the question count and use it as the ID
+            let question_id = self.question_count.read()
+                + 1; // Increment the question count and use it as the ID
 
             self.question_count.write(question_id); // Update the question count
 
@@ -95,7 +96,7 @@ mod ScavengerHunt {
 
                 let total_questions = self.question_per_level.read();
                 if level_progress.last_question_index >= total_questions {
-                    level_progress.is_completed = true; 
+                    level_progress.is_completed = true;
                 }
 
                 // Update storage
@@ -109,6 +110,5 @@ mod ScavengerHunt {
             self.player_level_progress.write((caller, question_data.level.into()), level_progress);
             false
         }
-
     }
 }
