@@ -146,6 +146,12 @@ mod ScavengerHunt {
             let question_id = self.questions_by_level.read((level_felt, index));
             let question_struct = self.questions.read(question_id);
             question_struct.question
+        fn request_hint(self: @ContractState, question_id: u64) -> ByteArray {
+            // Retrieve the question from storage
+            let question = self.questions.read(question_id);
+
+            // Return the hint stored in the question
+            question.hint
         }
     }
 }
