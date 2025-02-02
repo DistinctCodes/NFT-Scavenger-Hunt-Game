@@ -102,6 +102,8 @@ fn test_request_hint() {
     let contract_address = deploy_contract();
     let dispatcher = IScavengerHuntDispatcher { contract_address };
 
+    start_cheat_caller_address(contract_address, USER());
+
     // Define test data
     let level = Levels::Easy;
     let question = "What is the capital of France?"; // ByteArray
@@ -150,6 +152,10 @@ fn test_submit_answer() {
     // Add a question
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
 
+    // Assign the required role to the caller
+    start_cheat_caller_address(contract_address, USER()); 
+    
+
     // Submit the correct answer
     let result = dispatcher.submit_answer(0, answer.clone());
     assert(result == true, 'The answer should be correct');
@@ -158,4 +164,7 @@ fn test_submit_answer() {
     let wrong_answer = "London"; // ByteArray
     let result = dispatcher.submit_answer(0, wrong_answer);
     assert(result == false, 'The answer should be incorrect');
+    stop_cheat_caller_address(contract_address); 
+    
 }
+
