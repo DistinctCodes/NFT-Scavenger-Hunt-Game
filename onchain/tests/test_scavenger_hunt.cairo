@@ -2,7 +2,7 @@ use starknet::{ContractAddress, contract_address_const};
 
 use snforge_std::{
     declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-    stop_cheat_caller_address
+    stop_cheat_caller_address,
 };
 
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
@@ -94,7 +94,6 @@ fn test_add_and_get_question() {
         hint,
         retrieved_question.hint,
     );
-
 }
 
 #[test]
@@ -117,12 +116,7 @@ fn test_request_hint() {
     let retrieved_hint = dispatcher.request_hint(question_id);
 
     // Verify that the retrieved hint matches the expected hint
-    assert!(
-        retrieved_hint == hint,
-        "Expected hint '{}', got '{}'",
-        hint,
-        retrieved_hint,
-    );
+    assert!(retrieved_hint == hint, "Expected hint '{}', got '{}'", hint, retrieved_hint);
 }
 
 #[test]
