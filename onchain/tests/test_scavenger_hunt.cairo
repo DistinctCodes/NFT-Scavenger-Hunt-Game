@@ -181,9 +181,10 @@ fn test_get_question_in_level() {
     let question = "What is the capital of France?";
     let answer = "Paris";
     let hint = "It starts with 'P'";
-    let index = 0_u64;
+    let index = 0;
 
     start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.set_question_per_level(5);
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
     stop_cheat_caller_address(contract_address);
 
