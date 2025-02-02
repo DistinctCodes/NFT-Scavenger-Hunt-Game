@@ -143,16 +143,6 @@ fn test_submit_answer() {
 }
 
 #[test]
-fn test_get_question_in_level() {
-    let contract_address = deploy_contract();
-    let dispatcher = IScavengerHuntDispatcher { contract_address };
-
-    let level = Levels::Easy;
-    let question = "What is the capital of France?";
-    let answer = "Paris";
-    let hint = "It starts with 'P'";
-    let index = 0_u64;
-
 fn test_request_hint() {
     // Deploy the contract
     let contract_address = deploy_contract();
@@ -171,7 +161,29 @@ fn test_request_hint() {
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
     stop_cheat_caller_address(contract_address);
 
-<<<<<<< HEAD
+    // Retrieve the hint for the question
+    let question_id = 1; // Assuming the first question has ID 1
+    let retrieved_hint = dispatcher.request_hint(question_id);
+
+    // Verify that the retrieved hint matches the expected hint
+    assert!(retrieved_hint == hint, "Expected hint '{}', got '{}'", hint, retrieved_hint);
+}
+
+#[test]
+fn test_get_question_in_level() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    let level = Levels::Easy;
+    let question = "What is the capital of France?";
+    let answer = "Paris";
+    let hint = "It starts with 'P'";
+    let index = 0_u64;
+
+    start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
+    stop_cheat_caller_address(contract_address);
+
     let retrieved_question = dispatcher.get_question_in_level(level, index);
     
     assert!(
@@ -181,13 +193,3 @@ fn test_request_hint() {
         retrieved_question,
     );
 }
-
-=======
-    // Retrieve the hint for the question
-    let question_id = 1; // Assuming the first question has ID 1
-    let retrieved_hint = dispatcher.request_hint(question_id);
-
-    // Verify that the retrieved hint matches the expected hint
-    assert!(retrieved_hint == hint, "Expected hint '{}', got '{}'", hint, retrieved_hint);
-}
->>>>>>> main
