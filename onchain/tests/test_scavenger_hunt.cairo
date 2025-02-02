@@ -185,7 +185,7 @@ fn test_get_question_in_level() {
     stop_cheat_caller_address(contract_address);
 
     let retrieved_question = dispatcher.get_question_in_level(level, index);
-    
+
     assert!(
         retrieved_question == question,
         "Expected question '{}', got '{}'",
