@@ -142,7 +142,8 @@ mod ScavengerHunt {
         }
 
         fn get_question_in_level(self: @ContractState, level: Levels, index: u64) -> ByteArray {
-            let question_id = self.questions_by_level.read((level, index));
+            let level_felt: felt252 = level.into();  
+            let question_id = self.questions_by_level.read((level_felt, index));
             let question_struct = self.questions.read(question_id);
             question_struct.question
         }
