@@ -141,10 +141,10 @@ mod ScavengerHunt {
             false
         }
 
-        fn get_question_in_level(self: @ContractState, level: Levels, index: u64) -> Question {
-            let question_id = self.questions_by_level.read((level.into(), index));
-            
-            self.questions.read(question_id)
+        fn get_question_in_level(self: @ContractState, level: Levels, index: u64) -> ByteArray {
+            let question_id = self.questions_by_level.read((level, index));
+            let question_struct = self.questions.read(question_id);
+            question_struct.question
         }
     }
 }

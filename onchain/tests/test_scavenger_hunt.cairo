@@ -151,22 +151,19 @@ fn test_get_question_in_level() {
     let question = "What is the capital of France?";
     let answer = "Paris";
     let hint = "It starts with 'P'";
+    let index = 0_u64;
 
+    start_cheat_caller_address(contract_address, ADMIN());
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
+    stop_cheat_caller_address(contract_address);
 
-    let index = 1_u64;
     let retrieved_question = dispatcher.get_question_in_level(level, index);
-
+    
     assert!(
-        retrieved_question.question == question,
+        retrieved_question == question,
         "Expected question '{}', got '{}'",
         question,
-        retrieved_question.question,
-    );
-    assert!(
-        retrieved_question.level == level,
-        "Expected level {:?}, got {:?}",
-        level,
-        retrieved_question.level,
+        retrieved_question,
     );
 }
+
