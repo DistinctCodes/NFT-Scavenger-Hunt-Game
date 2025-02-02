@@ -12,8 +12,8 @@ pub trait IScavengerHunt<TContractState> {
     fn get_question(self: @TContractState, question_id: u64) -> Question;
     fn set_question_per_level(ref self: TContractState, amount: u8);
     fn get_question_per_level(self: @TContractState, amount: u8) -> u8;
-    fn request_hint(self: @TContractState, question_id: u64)
-     -> ByteArray; // request hint for a question
+    fn request_hint(self: @TContractState, question_id: u64) -> ByteArray; // request hint for a question
+    fn submit_answer(ref self: TContractState, question_id: u64, answer: ByteArray) -> bool;
 }
 
 #[derive(Drop, Serde, starknet::Store)]
