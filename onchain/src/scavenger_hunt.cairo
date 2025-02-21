@@ -47,6 +47,7 @@ mod ScavengerHunt {
     #[derive(Drop, starknet::Event)]
     pub enum Event {
         QuestionAdded: QuestionAdded,
+        QuestionUpdated: QuestionUpdated,
         PlayerInitialized: PlayerInitialized,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
@@ -65,6 +66,12 @@ mod ScavengerHunt {
         pub player_address: ContractAddress,
         pub level: felt252,
         pub is_initialized: bool
+    }
+
+    #[derive(Drop, starknet::Event)]
+    pub struct QuestionUpdated {
+        pub question_id: u64,
+        pub level: Levels,
     }
 
     #[constructor]
@@ -202,5 +209,32 @@ mod ScavengerHunt {
             let question_struct = self.questions.read(question_id);
             question_struct.question
         }
+
+        fn update_question(
+        ref self: ContractState,
+        question_id: u64,
+        question: ByteArray,
+        answer: ByteArray,
+        level: Levels,
+        hint: ByteArray,
+    ) {
+        self.accesscontrol.assert_only_role(ADMIN_ROLE);
+
+        // Check if the question exists
+        let mut existing_question = self.questions.read(question_id);
+        assert!(existing_question.question_id == question_id, "Question does not exist");
+
+        // Update the question details
+        existing_question.question = question;
+        existing_question.answer = answer;
+        existing_question.level = level;
+        existing_question.hint = hint;
+
+        // Write the updated question back to storage
+        self.questions.write(question_id, existing_question);
+
+        // Emit an event
+        self.emit(QuestionUpdated { question_id, level });
+    }
     }
 }
