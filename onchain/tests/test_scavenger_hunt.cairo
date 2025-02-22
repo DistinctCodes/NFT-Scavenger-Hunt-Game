@@ -275,3 +275,60 @@ fn test_update_question_should_panic_with_missing_role() {
     // Attempt to update the question without admin role
     dispatcher.update_question(1, updated_question.clone(), updated_answer.clone(), level, updated_hint.clone());
 }
+
+#[test]
+#[should_panic(expected: "Question does not exist")]
+fn test_update_question_should_panic_if_question_does_not_exist() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // Define test data for updating a non-existent question
+    let invalid_question_id = 1; // This question ID does not exist yet
+    let question = "What is the capital of France?";
+    let answer = "Paris";
+    let level = Levels::Easy;
+    let hint = "It starts with 'P'";
+
+    // Attempt to update a non-existent question
+    start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.update_question(invalid_question_id, question, answer, level, hint);
+    stop_cheat_caller_address(contract_address);
+}
+
+#[test]
+fn test_update_question_with_valid_id() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // First add a question
+    let level = Levels::Easy;
+    let initial_question = "What is the capital of France?";
+    let initial_answer = "Paris";
+    let initial_hint = "It starts with 'P'";
+
+    start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.set_question_per_level(5);
+    dispatcher.add_question(level, initial_question.clone(), initial_answer.clone(), initial_hint.clone());
+
+    // Now update the question (ID should be 1)
+    let updated_question = "What is the capital of Germany?";
+    let updated_answer = "Berlin";
+    let updated_hint = "It starts with 'B'";
+
+    dispatcher.update_question(1, updated_question.clone(), updated_answer.clone(), level, updated_hint.clone());
+    stop_cheat_caller_address(contract_address);
+
+    // Verify the update was successful
+    let retrieved_question = dispatcher.get_question(1);
+    assert!(
+        retrieved_question.question_id == 1,
+        "Expected question ID 1, got {}",
+        retrieved_question.question_id
+    );
+    assert!(
+        retrieved_question.question == updated_question,
+        "Expected question '{}', got '{}'",
+        updated_question,
+        retrieved_question.question
+    );
+}

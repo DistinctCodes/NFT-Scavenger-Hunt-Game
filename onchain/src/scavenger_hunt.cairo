@@ -215,7 +215,7 @@ mod ScavengerHunt {
         question_id: u64,
         question: ByteArray,
         answer: ByteArray,
-        level: Levels,
+        level: Levels,  // This would be updated in-time
         hint: ByteArray,
     ) {
         self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -224,17 +224,20 @@ mod ScavengerHunt {
         let mut existing_question = self.questions.read(question_id);
         assert!(existing_question.question_id == question_id, "Question does not exist");
 
+        // Copying the original level to avoid partial moves
+        let original_level = existing_question.level;
+
         // Update the question details
         existing_question.question = question;
         existing_question.answer = answer;
-        existing_question.level = level;
+        //TODO: support level update.
         existing_question.hint = hint;
 
         // Write the updated question back to storage
         self.questions.write(question_id, existing_question);
 
         // Emit an event
-        self.emit(QuestionUpdated { question_id, level });
+        self.emit(QuestionUpdated { question_id, level: original_level });
     }
     }
 }
