@@ -100,9 +100,9 @@ mod ScavengerHunt {
 
             self.question_count.write(question_id); // Update the question count
 
-             // Hash the answer ByteArray
-             let hashed_answer = hash_byte_array(answer.clone()); // Clone to avoid ownership issues
-        
+            // Hash the answer ByteArray
+            let hashed_answer = hash_byte_array(answer.clone()); // Clone to avoid ownership issues
+
             let new_question = Question { question_id, question, hashed_answer, level, hint };
 
             // Store the new question in the `questions` map
@@ -181,7 +181,7 @@ mod ScavengerHunt {
             // Increment attempts regardless of correctness
             level_progress.attempts += 1;
 
-              // Hash the answer ByteArray
+            // Hash the answer ByteArray
             let hashed_answer = hash_byte_array(answer.clone()); // Clone to avoid ownership issues
 
             if question_data.hashed_answer == hashed_answer {
@@ -233,7 +233,7 @@ mod ScavengerHunt {
             let mut existing_question = self.questions.read(question_id);
             assert!(existing_question.question_id == question_id, "Question does not exist");
 
-               // Hash the answer ByteArray
+            // Hash the answer ByteArray
             let hashed_answer = hash_byte_array(answer.clone()); // Clone to avoid ownership issues
             // Copying the original level to avoid partial moves
             let original_level = existing_question.level;
@@ -250,6 +250,5 @@ mod ScavengerHunt {
             // Emit an event
             self.emit(QuestionUpdated { question_id, level: original_level });
         }
-
     }
 }
