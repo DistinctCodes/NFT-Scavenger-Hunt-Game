@@ -6,7 +6,8 @@ use snforge_std::{
 };
 
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
-use core::poseidon::poseidon_hash_span;
+use onchain::utils::Utils::hash_byte_array;
+
 
 fn ADMIN() -> ContractAddress {
     contract_address_const::<'ADMIN'>()
@@ -16,30 +17,6 @@ fn USER() -> ContractAddress {
     contract_address_const::<'USER'>()
 }
 
-fn hash_byte_array(byte_array: ByteArray) -> felt252 {
-    let mut felt_array: Array<felt252> = ArrayTrait::new();
-    let len = byte_array.len();
-    let mut i: usize = 0;
-
-    loop {
-        if i >= len {
-            break;
-        }
-        match byte_array.at(i) {
-            Option::Some(byte) => {
-                felt_array.append(byte.into());
-            },
-            Option::None => {
-                //Handle Error, but in this case, it should never happen.
-            }
-        }
-        i += 1;
-    };
-
-    let felt_span = felt_array.span();
-    let hash = poseidon_hash_span(felt_span);
-    return hash;
-}
 
 
 fn deploy_contract() -> ContractAddress {
