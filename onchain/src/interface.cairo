@@ -26,13 +26,14 @@ pub trait IScavengerHunt<TContractState> {
         level: Levels,
         hint: ByteArray,
     );
+    fn hash_byte_array(ref self: TContractState,byte_array: ByteArray) -> felt252;
 }
 
 #[derive(Drop, Serde, starknet::Store)]
 pub struct Question {
     pub question_id: u64,
     pub question: ByteArray,
-    pub answer: ByteArray, // TODO: Store hashed answer
+    pub hashed_answer: felt252, 
     pub level: Levels,
     pub hint: ByteArray,
 }

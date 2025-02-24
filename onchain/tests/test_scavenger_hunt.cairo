@@ -6,6 +6,7 @@ use snforge_std::{
 };
 
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
+use core::poseidon::poseidon_hash_span;
 
 fn ADMIN() -> ContractAddress {
     contract_address_const::<'ADMIN'>()
@@ -14,6 +15,32 @@ fn ADMIN() -> ContractAddress {
 fn USER() -> ContractAddress {
     contract_address_const::<'USER'>()
 }
+
+fn hash_byte_array(byte_array: ByteArray) -> felt252 {
+    let mut felt_array: Array<felt252> = ArrayTrait::new();
+    let len = byte_array.len();
+    let mut i: usize = 0;
+
+    loop {
+        if i >= len {
+            break;
+        }
+        match byte_array.at(i) {
+            Option::Some(byte) => {
+                felt_array.append(byte.into());
+            },
+            Option::None => {
+                //Handle Error, but in this case, it should never happen.
+            }
+        }
+        i += 1;
+    };
+
+    let felt_span = felt_array.span();
+    let hash = poseidon_hash_span(felt_span);
+    return hash;
+}
+
 
 fn deploy_contract() -> ContractAddress {
     let contract = declare("ScavengerHunt").unwrap().contract_class();
@@ -60,6 +87,7 @@ fn test_add_and_get_question() {
     let answer = "Paris"; // ByteArray
     let hint = "It starts with 'P'"; // ByteArray
 
+    let hashed_answer = hash_byte_array(answer.clone());
     // Add a question
     start_cheat_caller_address(contract_address, ADMIN());
     dispatcher.set_question_per_level(5);
@@ -84,10 +112,10 @@ fn test_add_and_get_question() {
         retrieved_question.question,
     );
     assert!(
-        retrieved_question.answer == answer,
+        retrieved_question.hashed_answer == hashed_answer,
         "Expected answer '{}', got '{}'",
-        answer,
-        retrieved_question.answer,
+        hashed_answer,
+        retrieved_question.hashed_answer,
     );
     assert!(
         retrieved_question.hint == hint,
@@ -220,6 +248,8 @@ fn test_update_question() {
     let updated_answer = "Berlin";
     let updated_hint = "It starts with 'B'";
 
+    let hashed_updated_answer = hash_byte_array(updated_answer.clone());
+
     // Update the question
     start_cheat_caller_address(contract_address, ADMIN());
     dispatcher
@@ -239,10 +269,10 @@ fn test_update_question() {
         retrieved_question.question,
     );
     assert!(
-        retrieved_question.answer == updated_answer,
+        retrieved_question.hashed_answer == hashed_updated_answer,
         "Expected answer '{}', got '{}'",
-        updated_answer,
-        retrieved_question.answer,
+        hashed_updated_answer,
+        retrieved_question.hashed_answer,
     );
     assert!(
         retrieved_question.hint == updated_hint,
