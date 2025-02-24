@@ -2,7 +2,7 @@ use starknet::ContractAddress;
 use onchain::interface::{Levels};
 
 #[starknet::interface]
-pub trait IGameAsset<TContractState> {
+pub trait IScavengerHuntNFT<TContractState> {
     fn mint(
         ref self: TContractState,
         recipient: ContractAddress,
@@ -12,7 +12,7 @@ pub trait IGameAsset<TContractState> {
 }
 
 #[starknet::contract]
-mod GameAsset {
+mod ScavengerHuntNFT {
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc1155::{ERC1155Component, ERC1155HooksEmptyImpl};
     use starknet::ContractAddress;
@@ -58,13 +58,29 @@ mod GameAsset {
     impl ERC1155InternalImpl = ERC1155Component::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
-    impl GameAssetImpl of super::IGameAsset<ContractState> {
+    impl ScavengerHuntNFTImpl of super::IScavengerHuntNFT<ContractState> {
         fn mint(
             ref self: ContractState,
             recipient: ContractAddress,
             token_ids: Span<u256>,
             values: Span<u256>,
         ) {
+            // Check all token IDs are valid
+            let mut i = 0;
+            while i < token_ids.len() {
+                let token_id = *token_ids.at(i);
+
+                // Check if this token ID corresponds to any valid level
+                let is_easy = token_id == self.level_to_token_id.read('EASY');
+                let is_medium = token_id == self.level_to_token_id.read('MEDIUM');
+                let is_hard = token_id == self.level_to_token_id.read('HARD');
+                let is_master = token_id == self.level_to_token_id.read('MASTER');
+
+                assert(is_easy || is_medium || is_hard || is_master, 'Invalid tokenID');
+
+                i += 1;
+            };
+
             // Mint tokens
             self
                 .erc1155
@@ -74,7 +90,7 @@ mod GameAsset {
 
     // Helper function to get token ID for a level
     #[generate_trait]
-    impl GameAssetInternalImpl of IGameAssetInternal {
+    impl ScavengerHuntNFTInternalImpl of IScavengerHuntNFTInternal {
         fn get_token_id_for_level(self: @ContractState, level: Levels) -> u256 {
             let level_felt = level.into(); // Convert Levels to felt252
             self.level_to_token_id.read(level_felt)
