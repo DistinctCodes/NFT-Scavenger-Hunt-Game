@@ -1,4 +1,3 @@
-pub mod Utils {
     use core::poseidon::poseidon_hash_span;
     use core::array::ArrayTrait;
     use core::byte_array::ByteArray;
@@ -17,4 +16,4 @@ pub mod Utils {
 
         poseidon_hash_span(felt_array.span())
     }
-}
+

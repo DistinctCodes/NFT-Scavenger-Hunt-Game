@@ -6,7 +6,7 @@ use snforge_std::{
 };
 
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
-use onchain::utils::Utils::hash_byte_array;
+use onchain::utils::hash_byte_array;
 
 
 fn ADMIN() -> ContractAddress {

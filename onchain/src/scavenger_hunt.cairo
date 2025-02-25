@@ -12,7 +12,7 @@ mod ScavengerHunt {
     use onchain::interface::{IScavengerHunt, Question, Levels, PlayerProgress, LevelProgress};
     use core::array::{ArrayTrait};
     use core::felt252;
-    use onchain::utils::Utils::hash_byte_array;
+    use onchain::utils::hash_byte_array;
 
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
