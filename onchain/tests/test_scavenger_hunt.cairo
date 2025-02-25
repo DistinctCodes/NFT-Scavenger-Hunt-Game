@@ -18,7 +18,6 @@ fn USER() -> ContractAddress {
 }
 
 
-
 fn deploy_contract() -> ContractAddress {
     let contract = declare("ScavengerHunt").unwrap().contract_class();
     let mut constructor_calldata: Array::<felt252> = array![];
