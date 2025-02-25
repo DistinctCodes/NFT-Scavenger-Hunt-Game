@@ -4,19 +4,21 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Trophy, GamepadIcon } from "lucide-react";
 import ShareButton from "@/components/ShareButton";
-import TestComponent from "@/components/TestComponent";
-import AnimatedBlurBackground from "@/components/AnimatedBlurBackground";
-import NFTRewardSection from "@/components/NFTRewardSection";
+import NFTRewardsShowcase from "@/components/NFTRewardSection";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-black via-purple-900 to-black">
       {/* Animated background blur */}
-      <AnimatedBlurBackground />
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-pulse" />
+        <div className="absolute top-1/2 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-pulse delay-700" />
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-pulse delay-1000" />
+      </div>
 
       {/* Content */}
       <div className="relative flex min-h-screen flex-col items-center justify-center p-6 sm:p-24">
-        <TestComponent />
         {/* Glass card container */}
         <div className="backdrop-blur-lg bg-white/10 p-8 sm:p-12 rounded-2xl shadow-2xl border border-white/20 max-w-3xl w-full text-center">
           {/* Grid effect */}
@@ -81,8 +83,9 @@ export default function Home() {
           </div>
         </div>
       </div>
-    {/* NFT REWARD SECTION */}
-    <NFTRewardSection/>
+
+      <NFTRewardsShowcase />
+      <Footer />
     </main>
   );
 }
