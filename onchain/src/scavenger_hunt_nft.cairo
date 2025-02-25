@@ -45,11 +45,11 @@ mod ScavengerHuntNFT {
         // Initialize ERC-1155 with metadata URI
         self.erc1155.initializer(token_uri);
 
-        // Map levels to token IDs
-        self.level_to_token_id.write('EASY', u256 { low: 1, high: 0 });
-        self.level_to_token_id.write('MEDIUM', u256 { low: 2, high: 0 });
-        self.level_to_token_id.write('HARD', u256 { low: 3, high: 0 });
-        self.level_to_token_id.write('MASTER', u256 { low: 4, high: 0 });
+        // Store levels as `felt252` keys and token IDs as `u256` values
+        self.level_to_token_id.write(Levels::Easy.into(), u256 { low: 1, high: 0 });
+        self.level_to_token_id.write(Levels::Medium.into(), u256 { low: 2, high: 0 });
+        self.level_to_token_id.write(Levels::Hard.into(), u256 { low: 3, high: 0 });
+        self.level_to_token_id.write(Levels::Master.into(), u256 { low: 4, high: 0 });
     }
 
     #[abi(embed_v0)]

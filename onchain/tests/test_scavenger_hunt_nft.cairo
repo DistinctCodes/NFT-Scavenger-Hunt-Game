@@ -1,7 +1,7 @@
 use snforge_std::DeclareResultTrait;
 use starknet::ContractAddress;
 use snforge_std::{declare, ContractClassTrait};
-use onchain::ierc1155::{IERC1155Dispatcher, IERC1155DispatcherTrait};
+use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
 
 fn deploy_contract() -> ContractAddress {
     let token_uri: ByteArray = "https://scavenger_hunt_nft.com/your_id";
