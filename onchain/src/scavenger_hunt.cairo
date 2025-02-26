@@ -133,7 +133,7 @@ mod ScavengerHunt {
             self.question_per_level.write(amount);
         }
 
-        fn get_question_per_level(self: @ContractState, amount: u8) -> u8 {
+        fn get_question_per_level(self: @ContractState, count: u8) -> u8 {
             self.question_per_level.read()
         }
 

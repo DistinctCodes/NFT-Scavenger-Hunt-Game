@@ -71,10 +71,11 @@ mod ScavengerHuntNFT {
                 let token_id = *token_ids.at(i);
 
                 // Check if this token ID corresponds to any valid level
-                let is_easy = token_id == self.level_to_token_id.read('EASY');
-                let is_medium = token_id == self.level_to_token_id.read('MEDIUM');
-                let is_hard = token_id == self.level_to_token_id.read('HARD');
-                let is_master = token_id == self.level_to_token_id.read('MASTER');
+
+                let is_easy = token_id == self.level_to_token_id.read(Levels::Easy.into());
+                let is_medium = token_id == self.level_to_token_id.read(Levels::Medium.into());
+                let is_hard = token_id == self.level_to_token_id.read(Levels::Hard.into());
+                let is_master = token_id == self.level_to_token_id.read(Levels::Master.into());
 
                 assert(is_easy || is_medium || is_hard || is_master, 'Invalid tokenID');
 

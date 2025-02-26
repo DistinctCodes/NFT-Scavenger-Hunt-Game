@@ -1,7 +1,7 @@
 use snforge_std::DeclareResultTrait;
 use starknet::ContractAddress;
 use snforge_std::{declare, ContractClassTrait};
-use openzeppelin_token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
+use openzeppelin::token::{erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait}};
 
 fn deploy_contract() -> ContractAddress {
     let token_uri: ByteArray = "https://scavenger_hunt_nft.com/your_id";
@@ -25,6 +25,7 @@ fn deploy_mock_receiver() -> ContractAddress {
 
 #[test]
 fn test_constructor() {
+    
     let contract_address = deploy_contract();
 
     let erc1155_token = IERC1155Dispatcher { contract_address };
@@ -32,6 +33,7 @@ fn test_constructor() {
     let recipient = deploy_mock_receiver();
 
     let token_ids = array![1_u256].span();
+
     let values = array![10_u256].span();
 
     // Ensure `mint` is properly exposed
