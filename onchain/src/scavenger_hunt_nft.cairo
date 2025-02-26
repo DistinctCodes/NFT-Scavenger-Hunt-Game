@@ -3,12 +3,11 @@ use onchain::interface::{Levels};
 
 #[starknet::interface]
 pub trait IScavengerHuntNFT<TContractState> {
-    fn mint(
-        ref self: TContractState,
-        recipient: ContractAddress,
-        token_ids: Span<u256>,
-        values: Span<u256>,
-    );
+    fn mint_level_badge(ref self: TContractState, recipient: ContractAddress, level: Levels,);
+
+    fn get_token_id_for_level(self: @TContractState, level: Levels) -> u256;
+
+    fn has_level_badge(self: @TContractState, owner: ContractAddress, level: Levels) -> bool;
 }
 
 #[starknet::contract]
@@ -59,42 +58,34 @@ mod ScavengerHuntNFT {
 
     #[abi(embed_v0)]
     impl ScavengerHuntNFTImpl of super::IScavengerHuntNFT<ContractState> {
-        fn mint(
-            ref self: ContractState,
-            recipient: ContractAddress,
-            token_ids: Span<u256>,
-            values: Span<u256>,
-        ) {
-            // Check all token IDs are valid
-            let mut i = 0;
-            while i < token_ids.len() {
-                let token_id = *token_ids.at(i);
+        // Mint a level badge (exactly one token)
+        fn mint_level_badge(ref self: ContractState, recipient: ContractAddress, level: Levels,) {
+            // Get token ID for the specified level
+            let token_id = self.get_token_id_for_level(level);
 
-                // Check if this token ID corresponds to any valid level
+            // Check if recipient already has this badge
+            let balance = self.erc1155.balance_of(recipient, token_id);
+            assert(balance == u256 { low: 0, high: 0 }, 'Already has this badge');
 
-                let is_easy = token_id == self.level_to_token_id.read(Levels::Easy.into());
-                let is_medium = token_id == self.level_to_token_id.read(Levels::Medium.into());
-                let is_hard = token_id == self.level_to_token_id.read(Levels::Hard.into());
-                let is_master = token_id == self.level_to_token_id.read(Levels::Master.into());
-
-                assert(is_easy || is_medium || is_hard || is_master, 'Invalid tokenID');
-
-                i += 1;
-            };
-
-            // Mint tokens
+            // Mint exactly one token
             self
                 .erc1155
-                .batch_mint_with_acceptance_check(recipient, token_ids, values, array![].span());
+                .mint_with_acceptance_check(
+                    recipient, token_id, u256 { low: 1, high: 0 }, array![].span()
+                );
         }
-    }
 
-    // Helper function to get token ID for a level
-    #[generate_trait]
-    impl ScavengerHuntNFTInternalImpl of IScavengerHuntNFTInternal {
+        // Function to get token ID for a level
         fn get_token_id_for_level(self: @ContractState, level: Levels) -> u256 {
             let level_felt = level.into(); // Convert Levels to felt252
             self.level_to_token_id.read(level_felt)
+        }
+
+        // Check if a player has a specific level badge
+        fn has_level_badge(self: @ContractState, owner: ContractAddress, level: Levels) -> bool {
+            let token_id = self.get_token_id_for_level(level);
+            let balance = self.erc1155.balance_of(owner, token_id);
+            balance > u256 { low: 0, high: 0 }
         }
     }
 }
