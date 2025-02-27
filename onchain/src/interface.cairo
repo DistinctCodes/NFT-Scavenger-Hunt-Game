@@ -89,3 +89,31 @@ impl Felt252TryIntoLevels of TryInto<felt252, Levels> {
         }
     }
 }
+
+
+impl LevelsIntoTokenIDs of Into<Levels, u256> {
+    fn into(self: Levels) -> u256 {
+        match self {
+            Levels::Easy => 1,
+            Levels::Medium => 2,
+            Levels::Hard => 3,
+            Levels::Master => 4,
+        }
+    }
+}
+
+impl TokenIDsTryIntoLevels of TryInto<u256, Levels> {
+    fn try_into(self: u256) -> Option<Levels> {
+        if self == 1 {
+            Option::Some(Levels::Easy)
+        } else if self == 2 {
+            Option::Some(Levels::Medium)
+        } else if self == 3 {
+            Option::Some(Levels::Hard)
+        } else if self == 'MASTER' {
+            Option::Some(Levels::Master)
+        } else {
+            Option::None
+        }
+    }
+}
