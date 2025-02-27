@@ -7,12 +7,14 @@ use onchain::interface::{Levels};
 
 // Helper function to deploy the ScavengerHuntNFT contract
 fn deploy_contract() -> ContractAddress {
-    let token_uri: ByteArray = "https://scavenger_hunt_nft.com/your_id";
+    let base_uri: ByteArray = "https://scavenger_hunt_nft.com/";
 
     let mut constructor_calldata: Array<felt252> = ArrayTrait::new();
-    token_uri.serialize(ref constructor_calldata);
+
+    base_uri.serialize(ref constructor_calldata);
 
     let contract = declare("ScavengerHuntNFT").unwrap().contract_class();
+
     let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
 
     contract_address
@@ -26,17 +28,7 @@ fn deploy_mock_receiver() -> ContractAddress {
     contract_address
 }
 
-// Test contract deployment and token ID mapping
-//#[test]
-//fn test_constructor_and_token_uri() {
-//  let contract_address = deploy_contract();
 
-//let erc1155 = IERC1155Dispatcher { contract_address };
-
-// assert(erc1155.uri(1_u256) == "https://scavenger_hunt_nft.com/your_id", 'Wrong Token uri');
-//}
-
-// Test minting a single badge and verifying ownership
 #[test]
 fn test_mint_single_badge() {
     let contract_address = deploy_contract();
@@ -164,12 +156,6 @@ fn test_erc1155_compliance() {
         erc1155.balance_of(recipient, token_id) == u256 { low: 1, high: 0 },
         'Balance should be 1 after mint'
     );
-    // If your contract implements balance_of_batch, you could test that too
-// let addresses = array![recipient, recipient].span();
-// let ids = array![token_id, another_token_id].span();
-// let balances = erc1155.balance_of_batch(addresses, ids);
-// assert(balances.len() == 2, 'Wrong batch response length');
-// assert(*balances.at(0) == u256 { low: 1, high: 0 }, 'Wrong balance for first token');
 }
 
 // Test for non-existent badge
@@ -183,3 +169,4 @@ fn test_non_existent_badge() {
     // Check badge ownership for a badge that hasn't been minted
     assert(!scavenger_hunt.has_level_badge(recipient, Levels::Hard), 'Should not have Hard badge');
 }
+
