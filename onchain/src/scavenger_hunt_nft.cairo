@@ -1,11 +1,10 @@
 use starknet::ContractAddress;
+//us
 use onchain::interface::{Levels};
 
 #[starknet::interface]
 pub trait IScavengerHuntNFT<TContractState> {
     fn mint_level_badge(ref self: TContractState, recipient: ContractAddress, level: Levels,);
-
-    fn get_token_id_for_level(self: @TContractState, level: Levels) -> u256;
 
     fn has_level_badge(self: @TContractState, owner: ContractAddress, level: Levels) -> bool;
 }
@@ -16,7 +15,6 @@ mod ScavengerHuntNFT {
     use openzeppelin::token::erc1155::{ERC1155Component, ERC1155HooksEmptyImpl};
     use starknet::ContractAddress;
     use super::{Levels};
-    use starknet::storage::Map;
 
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -27,7 +25,6 @@ mod ScavengerHuntNFT {
         erc1155: ERC1155Component::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-        level_to_token_id: Map<felt252, u256> // Maps Levels (as felt) to token IDs
     }
 
     #[event]
@@ -43,12 +40,6 @@ mod ScavengerHuntNFT {
     fn constructor(ref self: ContractState, token_uri: ByteArray) {
         // Initialize ERC-1155 with metadata URI
         self.erc1155.initializer(token_uri);
-
-        // Store levels as `felt252` keys and token IDs as `u256` values
-        self.level_to_token_id.write(Levels::Easy.into(), u256 { low: 1, high: 0 });
-        self.level_to_token_id.write(Levels::Medium.into(), u256 { low: 2, high: 0 });
-        self.level_to_token_id.write(Levels::Hard.into(), u256 { low: 3, high: 0 });
-        self.level_to_token_id.write(Levels::Master.into(), u256 { low: 4, high: 0 });
     }
 
     #[abi(embed_v0)]
@@ -61,31 +52,22 @@ mod ScavengerHuntNFT {
         // Mint a level badge (exactly one token)
         fn mint_level_badge(ref self: ContractState, recipient: ContractAddress, level: Levels,) {
             // Get token ID for the specified level
-            let token_id = self.get_token_id_for_level(level);
+            let token_id = level.into();
 
             // Check if recipient already has this badge
             let balance = self.erc1155.balance_of(recipient, token_id);
-            assert(balance == u256 { low: 0, high: 0 }, 'Already has this badge');
+            assert(balance == 0_u256, 'Already has this badge');
 
             // Mint exactly one token
-            self
-                .erc1155
-                .mint_with_acceptance_check(
-                    recipient, token_id, u256 { low: 1, high: 0 }, array![].span()
-                );
+            self.erc1155.mint_with_acceptance_check(recipient, token_id, 1_u256, array![].span());
         }
 
-        // Function to get token ID for a level
-        fn get_token_id_for_level(self: @ContractState, level: Levels) -> u256 {
-            let level_felt = level.into(); // Convert Levels to felt252
-            self.level_to_token_id.read(level_felt)
-        }
 
         // Check if a player has a specific level badge
         fn has_level_badge(self: @ContractState, owner: ContractAddress, level: Levels) -> bool {
-            let token_id = self.get_token_id_for_level(level);
+            let token_id = level.into();
             let balance = self.erc1155.balance_of(owner, token_id);
-            balance > u256 { low: 0, high: 0 }
+            balance > 0_u256
         }
     }
 }
