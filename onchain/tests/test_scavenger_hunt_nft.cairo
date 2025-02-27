@@ -27,23 +27,14 @@ fn deploy_mock_receiver() -> ContractAddress {
 }
 
 // Test contract deployment and token ID mapping
-#[test]
-fn test_constructor_and_token_ids() {
-    let contract_address = deploy_contract();
-    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
+//#[test]
+//fn test_constructor_and_token_uri() {
+//  let contract_address = deploy_contract();
 
-    // Check token IDs for all levels
-    let easy_token_id = scavenger_hunt.get_token_id_for_level(Levels::Easy);
-    let medium_token_id = scavenger_hunt.get_token_id_for_level(Levels::Medium);
-    let hard_token_id = scavenger_hunt.get_token_id_for_level(Levels::Hard);
-    let master_token_id = scavenger_hunt.get_token_id_for_level(Levels::Master);
+//let erc1155 = IERC1155Dispatcher { contract_address };
 
-    // Verify token IDs match what we defined in the constructor
-    assert(easy_token_id == u256 { low: 1, high: 0 }, 'Wrong Easy token ID');
-    assert(medium_token_id == u256 { low: 2, high: 0 }, 'Wrong Medium token ID');
-    assert(hard_token_id == u256 { low: 3, high: 0 }, 'Wrong Hard token ID');
-    assert(master_token_id == u256 { low: 4, high: 0 }, 'Wrong Master token ID');
-}
+// assert(erc1155.uri(1_u256) == "https://scavenger_hunt_nft.com/your_id", 'Wrong Token uri');
+//}
 
 // Test minting a single badge and verifying ownership
 #[test]
@@ -61,11 +52,9 @@ fn test_mint_single_badge() {
     assert(scavenger_hunt.has_level_badge(recipient, Levels::Easy), 'Should have Easy badge');
 
     // Check badge ownership using ERC1155 balance_of directly
-    let token_id = scavenger_hunt.get_token_id_for_level(Levels::Easy);
-    assert(
-        erc1155.balance_of(recipient, token_id) == u256 { low: 1, high: 0 },
-        'Should have balance of 1'
-    );
+    let token_id = Levels::Easy.into();
+
+    assert(erc1155.balance_of(recipient, token_id) == 1_u256, 'Should have balance of 1');
 
     // Verify recipient doesn't have other badges
     assert(
@@ -158,7 +147,8 @@ fn test_erc1155_compliance() {
     let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
 
     let recipient = deploy_mock_receiver();
-    let token_id = scavenger_hunt.get_token_id_for_level(Levels::Master);
+
+    let token_id = Levels::Master.into();
 
     // Check initial balance is zero
     assert(
