@@ -2,105 +2,194 @@ use snforge_std::DeclareResultTrait;
 use starknet::ContractAddress;
 use snforge_std::{declare, ContractClassTrait};
 use openzeppelin::token::{erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait}};
+use onchain::scavenger_hunt_nft::{IScavengerHuntNFTDispatcher, IScavengerHuntNFTDispatcherTrait};
+use onchain::interface::{Levels};
 
+// Helper function to deploy the ScavengerHuntNFT contract
 fn deploy_contract() -> ContractAddress {
     let token_uri: ByteArray = "https://scavenger_hunt_nft.com/your_id";
+
     let mut constructor_calldata: Array<felt252> = ArrayTrait::new();
     token_uri.serialize(ref constructor_calldata);
 
     let contract = declare("ScavengerHuntNFT").unwrap().contract_class();
-
     let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
 
     contract_address
 }
 
+// Helper function to deploy the MockERC1155Receiver contract
 fn deploy_mock_receiver() -> ContractAddress {
     let contract = declare("MockERC1155Receiver").unwrap().contract_class();
-
     let (contract_address, _) = contract.deploy(@ArrayTrait::new()).unwrap();
 
     contract_address
 }
 
+// Test contract deployment and token ID mapping
 #[test]
-fn test_constructor() {
-    
+fn test_constructor_and_token_ids() {
     let contract_address = deploy_contract();
+    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
 
-    let erc1155_token = IERC1155Dispatcher { contract_address };
+    // Check token IDs for all levels
+    let easy_token_id = scavenger_hunt.get_token_id_for_level(Levels::Easy);
+    let medium_token_id = scavenger_hunt.get_token_id_for_level(Levels::Medium);
+    let hard_token_id = scavenger_hunt.get_token_id_for_level(Levels::Hard);
+    let master_token_id = scavenger_hunt.get_token_id_for_level(Levels::Master);
 
-    let recipient = deploy_mock_receiver();
-
-    let token_ids = array![1_u256].span();
-
-    let values = array![10_u256].span();
-
-    // Ensure `mint` is properly exposed
-    // You might need a different dispatcher if `mint` is not part of IERC1155Dispatcher
-    erc1155_token.mint(recipient, token_ids, values);
-
-    let token_uri = erc1155_token.uri(1_u256);
-
-    assert(token_uri == "https://scavenger_hunt_nft.com/your_id", 'wrong token uri');
+    // Verify token IDs match what we defined in the constructor
+    assert(easy_token_id == u256 { low: 1, high: 0 }, 'Wrong Easy token ID');
+    assert(medium_token_id == u256 { low: 2, high: 0 }, 'Wrong Medium token ID');
+    assert(hard_token_id == u256 { low: 3, high: 0 }, 'Wrong Hard token ID');
+    assert(master_token_id == u256 { low: 4, high: 0 }, 'Wrong Master token ID');
 }
 
+// Test minting a single badge and verifying ownership
 #[test]
-fn test_mint() {
+fn test_mint_single_badge() {
     let contract_address = deploy_contract();
-
-    let scavenger_hunt_nft = IERC1155Dispatcher { contract_address };
+    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
+    let erc1155 = IERC1155Dispatcher { contract_address };
 
     let recipient = deploy_mock_receiver();
 
-    let token_ids = array![1_u256, 2_u256, 3_u256].span();
+    // Mint an Easy badge
+    scavenger_hunt.mint_level_badge(recipient, Levels::Easy);
 
-    let values = array![10_u256, 20_u256, 30_u256].span();
+    // Check badge ownership using has_level_badge
+    assert(scavenger_hunt.has_level_badge(recipient, Levels::Easy), 'Should have Easy badge');
 
-    scavenger_hunt_nft.mint(recipient, token_ids, values);
-
+    // Check badge ownership using ERC1155 balance_of directly
+    let token_id = scavenger_hunt.get_token_id_for_level(Levels::Easy);
     assert(
-        scavenger_hunt_nft.balance_of(recipient, 1_u256) == 10_u256, 'Wrong balance for token 1',
+        erc1155.balance_of(recipient, token_id) == u256 { low: 1, high: 0 },
+        'Should have balance of 1'
     );
+
+    // Verify recipient doesn't have other badges
     assert(
-        scavenger_hunt_nft.balance_of(recipient, 2_u256) == 20_u256, 'Wrong balance for token 2',
+        !scavenger_hunt.has_level_badge(recipient, Levels::Medium), 'Should not have Medium badge'
     );
+    assert(!scavenger_hunt.has_level_badge(recipient, Levels::Hard), 'Should not have Hard badge');
     assert(
-        scavenger_hunt_nft.balance_of(recipient, 3_u256) == 30_u256, 'Wrong balance for token 3',
+        !scavenger_hunt.has_level_badge(recipient, Levels::Master), 'Should not have Master badge'
     );
 }
 
+// Test minting multiple different badges to the same recipient
 #[test]
-#[should_panic(expected: ('Invalid tokenID',))]
-fn test_invalid_token_id() {
+fn test_mint_multiple_badges() {
     let contract_address = deploy_contract();
-
-    let scavenger_hunt_nft = IERC1155Dispatcher { contract_address };
+    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
 
     let recipient = deploy_mock_receiver();
 
-    let token_ids = array![5_u256].span();
+    // Mint badges for multiple levels
+    scavenger_hunt.mint_level_badge(recipient, Levels::Easy);
+    scavenger_hunt.mint_level_badge(recipient, Levels::Medium);
+    scavenger_hunt.mint_level_badge(recipient, Levels::Hard);
 
-    let values = array![50_u256].span();
-
-    scavenger_hunt_nft.mint(recipient, token_ids, values);
-
-    assert(scavenger_hunt_nft.balance_of(recipient, 5_u256) == 50_u256, 'Invalid Token ID');
+    // Check all badges were minted correctly
+    assert(scavenger_hunt.has_level_badge(recipient, Levels::Easy), 'Should have Easy badge');
+    assert(scavenger_hunt.has_level_badge(recipient, Levels::Medium), 'Should have Medium badge');
+    assert(scavenger_hunt.has_level_badge(recipient, Levels::Hard), 'Should have Hard badge');
+    assert(
+        !scavenger_hunt.has_level_badge(recipient, Levels::Master), 'Should not have Master badge'
+    );
 }
 
+// Test minting badges to different recipients
 #[test]
-fn test_mint_nft() {
+fn test_mint_to_different_recipients() {
     let contract_address = deploy_contract();
-    let scavenger_hunt_nft = IERC1155Dispatcher { contract_address };
+    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
+
+    // Deploy two different receivers
+    let recipient1 = deploy_mock_receiver();
+    let recipient2 = deploy_mock_receiver();
+
+    // Mint badges to different recipients
+    scavenger_hunt.mint_level_badge(recipient1, Levels::Easy);
+    scavenger_hunt.mint_level_badge(recipient1, Levels::Medium);
+    scavenger_hunt.mint_level_badge(recipient2, Levels::Medium);
+    scavenger_hunt.mint_level_badge(recipient2, Levels::Hard);
+
+    // Check recipient1's badges
+    assert(scavenger_hunt.has_level_badge(recipient1, Levels::Easy), 'Recipient1 should have Easy');
+    assert(
+        scavenger_hunt.has_level_badge(recipient1, Levels::Medium), 'Recipient1 should have Medium'
+    );
+    assert(
+        !scavenger_hunt.has_level_badge(recipient1, Levels::Hard), 'Recipient1 should not have Hard'
+    );
+
+    // Check recipient2's badges
+    assert(
+        !scavenger_hunt.has_level_badge(recipient2, Levels::Easy), 'Recipient2 should not have Easy'
+    );
+    assert(
+        scavenger_hunt.has_level_badge(recipient2, Levels::Medium), 'Recipient2 should have Medium'
+    );
+    assert(scavenger_hunt.has_level_badge(recipient2, Levels::Hard), 'Recipient2 should have Hard');
+}
+
+// Test duplicate minting (should fail)
+#[test]
+#[should_panic(expected: 'Already has this badge')]
+fn test_duplicate_minting() {
+    let contract_address = deploy_contract();
+    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
+
     let recipient = deploy_mock_receiver();
 
-    // Mint 1 copy per token ID (NFT behavior)
-    let token_ids = array![1_u256, 2_u256, 3_u256].span();
-    let values = array![1_u256, 1_u256, 1_u256].span(); // <-- 1 copy per token
+    // Mint a badge
+    scavenger_hunt.mint_level_badge(recipient, Levels::Easy);
 
-    scavenger_hunt_nft.mint(recipient, token_ids, values);
+    // Try to mint the same badge again (should fail)
+    scavenger_hunt.mint_level_badge(recipient, Levels::Easy);
+}
 
-    // Verify balances
-    assert(scavenger_hunt_nft.balance_of(recipient, 1_u256) == 1_u256, 'Not an NFT');
-    assert(scavenger_hunt_nft.balance_of(recipient, 2_u256) == 1_u256, 'Not an NFT');
+// Test ERC1155 standard compliance
+#[test]
+fn test_erc1155_compliance() {
+    let contract_address = deploy_contract();
+    let erc1155 = IERC1155Dispatcher { contract_address };
+    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
+
+    let recipient = deploy_mock_receiver();
+    let token_id = scavenger_hunt.get_token_id_for_level(Levels::Master);
+
+    // Check initial balance is zero
+    assert(
+        erc1155.balance_of(recipient, token_id) == u256 { low: 0, high: 0 },
+        'Initial balance should be 0'
+    );
+
+    // Mint a badge
+    scavenger_hunt.mint_level_badge(recipient, Levels::Master);
+
+    // Check balance is now one
+    assert(
+        erc1155.balance_of(recipient, token_id) == u256 { low: 1, high: 0 },
+        'Balance should be 1 after mint'
+    );
+    // If your contract implements balance_of_batch, you could test that too
+// let addresses = array![recipient, recipient].span();
+// let ids = array![token_id, another_token_id].span();
+// let balances = erc1155.balance_of_batch(addresses, ids);
+// assert(balances.len() == 2, 'Wrong batch response length');
+// assert(*balances.at(0) == u256 { low: 1, high: 0 }, 'Wrong balance for first token');
+}
+
+// Test for non-existent badge
+#[test]
+fn test_non_existent_badge() {
+    let contract_address = deploy_contract();
+    let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
+
+    let recipient = deploy_mock_receiver();
+
+    // Check badge ownership for a badge that hasn't been minted
+    assert(!scavenger_hunt.has_level_badge(recipient, Levels::Hard), 'Should not have Hard badge');
 }
