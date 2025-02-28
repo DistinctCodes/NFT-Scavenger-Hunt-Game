@@ -244,7 +244,7 @@ fn test_unauthorized_mint() {
 
     let recipient = deploy_mock_receiver();
 
-    // Set caller address to scavenger_hunt_address to simulate call from ScavengerHunt contract
+    // Set caller address to unauthorized_address to simulate call from an unauthorized address
     start_cheat_caller_address(contract_address, unauthorized_address);
 
     // Try to mint as unauthorized caller (should fail)
