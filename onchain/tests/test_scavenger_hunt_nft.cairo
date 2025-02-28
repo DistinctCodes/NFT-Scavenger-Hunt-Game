@@ -2,10 +2,8 @@ use snforge_std::DeclareResultTrait;
 use starknet::ContractAddress;
 use snforge_std::{declare, ContractClassTrait, start_cheat_caller_address, stop_cheat_caller_address};
 use openzeppelin::token::{erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait}};
-use openzeppelin::access::accesscontrol::interface::{IAccessControlDispatcher, IAccessControlDispatcherTrait};
 use onchain::scavenger_hunt_nft::{IScavengerHuntNFTDispatcher, IScavengerHuntNFTDispatcherTrait};
 use onchain::interface::{Levels};
-// use starknet::testing::start_cheat_caller_address;
 
 // Define for testing
 const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
@@ -252,9 +250,6 @@ fn test_unauthorized_mint() {
     // Try to mint as unauthorized caller (should fail)
     scavenger_hunt.mint_level_badge(recipient, Levels::Easy);
 }
-
-
-
 
 // Test that ScavengerHunt contract has the minter role by default
 #[test]
