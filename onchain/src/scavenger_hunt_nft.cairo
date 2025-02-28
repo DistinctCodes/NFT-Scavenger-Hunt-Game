@@ -24,6 +24,7 @@ mod ScavengerHuntNFT {
 
     // Define role constants
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
+    const DEFAULT_ADMIN_ROLE: felt252 = 0; // This is OZ's default admin role
     
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
@@ -58,8 +59,17 @@ mod ScavengerHuntNFT {
         // Initialize AccessControl
         self.accesscontrol.initializer();
         
-        // Grant minter role to the Scavenger Hunt contract immediately
+        // Get deployer address
+        let deployer = starknet::get_caller_address();
+        
+        // Grant default admin role to deployer
+        self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, deployer);
+        
+        // Grant minter role to the Scavenger Hunt contract
         self.accesscontrol._grant_role(MINTER_ROLE, scavenger_hunt_contract);
+        
+        // Also grant default admin role to the Scavenger Hunt contract for testing purposes
+        self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, scavenger_hunt_contract);
     }
 
     // AccessControl implementation
@@ -99,13 +109,19 @@ mod ScavengerHuntNFT {
         
         // Grant minter role to a contract or address
         fn grant_minter_role(ref self: ContractState, account: ContractAddress) {
-            // Only current role admin can grant roles
+            // Check that caller has the default admin role
+            self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
+
+            // Grant the role
             self.accesscontrol.grant_role(MINTER_ROLE, account);
         }
-        
+
         // Revoke minter role from a contract or address
         fn revoke_minter_role(ref self: ContractState, account: ContractAddress) {
-            // Only current role admin can revoke roles
+            // Check that caller has the default admin role
+            self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
+            
+            // Revoke the role
             self.accesscontrol.revoke_role(MINTER_ROLE, account);
         }
         
