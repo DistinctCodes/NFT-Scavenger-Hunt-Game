@@ -5,7 +5,7 @@ use onchain::interface::{Levels};
 pub trait IScavengerHuntNFT<TContractState> {
     fn mint_level_badge(ref self: TContractState, recipient: ContractAddress, level: Levels);
     fn has_level_badge(self: @TContractState, owner: ContractAddress, level: Levels) -> bool;
-    
+
     // Access control functions
     fn grant_minter_role(ref self: TContractState, account: ContractAddress);
     fn revoke_minter_role(ref self: TContractState, account: ContractAddress);
@@ -25,7 +25,7 @@ mod ScavengerHuntNFT {
     // Define role constants
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
     const DEFAULT_ADMIN_ROLE: felt252 = 0; // This is OZ's default admin role
-    
+
     component!(path: ERC1155Component, storage: erc1155, event: ERC1155Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
@@ -52,29 +52,32 @@ mod ScavengerHuntNFT {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, token_uri: ByteArray, scavenger_hunt_contract: ContractAddress) {
+    fn constructor(
+        ref self: ContractState, token_uri: ByteArray, scavenger_hunt_contract: ContractAddress
+    ) {
         // Initialize ERC-1155 with metadata URI
         self.erc1155.initializer(token_uri);
-        
+
         // Initialize AccessControl
         self.accesscontrol.initializer();
-        
+
         // Get deployer address
         let deployer = starknet::get_caller_address();
-        
+
         // Grant default admin role to deployer
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, deployer);
-        
+
         // Grant minter role to the Scavenger Hunt contract
         self.accesscontrol._grant_role(MINTER_ROLE, scavenger_hunt_contract);
-        
+
         // Also grant default admin role to the Scavenger Hunt contract for testing purposes
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, scavenger_hunt_contract);
     }
 
     // AccessControl implementation
     #[abi(embed_v0)]
-    impl AccessControlImpl = AccessControlComponent::AccessControlImpl<ContractState>;
+    impl AccessControlImpl =
+        AccessControlComponent::AccessControlImpl<ContractState>;
     impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
 
     // ERC1155 implementation
@@ -88,7 +91,7 @@ mod ScavengerHuntNFT {
         fn mint_level_badge(ref self: ContractState, recipient: ContractAddress, level: Levels) {
             // Check that caller has minter role
             self.accesscontrol.assert_only_role(MINTER_ROLE);
-            
+
             // Get token ID for the specified level
             let token_id = level.into();
 
@@ -106,7 +109,7 @@ mod ScavengerHuntNFT {
             let balance = self.erc1155.balance_of(owner, token_id);
             balance > 0_u256
         }
-        
+
         // Grant minter role to a contract or address
         fn grant_minter_role(ref self: ContractState, account: ContractAddress) {
             // Check that caller has the default admin role
@@ -120,11 +123,11 @@ mod ScavengerHuntNFT {
         fn revoke_minter_role(ref self: ContractState, account: ContractAddress) {
             // Check that caller has the default admin role
             self.accesscontrol.assert_only_role(DEFAULT_ADMIN_ROLE);
-            
+
             // Revoke the role
             self.accesscontrol.revoke_role(MINTER_ROLE, account);
         }
-        
+
         // Check if an account has minter role
         fn has_minter_role(self: @ContractState, account: ContractAddress) -> bool {
             self.accesscontrol.has_role(MINTER_ROLE, account)

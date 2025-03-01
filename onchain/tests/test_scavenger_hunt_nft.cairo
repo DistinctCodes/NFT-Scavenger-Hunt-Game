@@ -267,51 +267,6 @@ fn test_scavenger_hunt_has_minter_role() {
     );
 }
 
-
-// Test grant and revoke minter role
-// #[test]
-// fn test_grant_revoke_minter_role() {
-//     // Create mock addresses for testing
-//     let scavenger_hunt_address: ContractAddress = 0x456.try_into().unwrap();
-//     let new_minter_address: ContractAddress = 0x789.try_into().unwrap();
-
-//     // Deploy the contract with our test addresses
-//     let contract_address = deploy_contract(scavenger_hunt_address);
-//     let scavenger_hunt = IScavengerHuntNFTDispatcher { contract_address };
-
-//     let recipient = deploy_mock_receiver();
-
-//     // Check if new_minter_address has minter role (should be false)
-//     assert(!scavenger_hunt.has_minter_role(new_minter_address), 'Should not have minter role');
-
-//     // Set caller address to scavenger_hunt_address (which has admin role by default)
-//     start_cheat_caller_address(contract_address, scavenger_hunt_address);
-
-//     // Grant minter role to new_minter_address
-//     scavenger_hunt.grant_minter_role(new_minter_address);
-
-//     stop_cheat_caller_address(contract_address);
-
-//     // Check if new_minter_address now has minter role
-//     assert(scavenger_hunt.has_minter_role(new_minter_address), 'Should have minter role');
-
-//     // Test that new_minter_address can mint
-//     start_cheat_caller_address(contract_address, new_minter_address);
-//     scavenger_hunt.mint_level_badge(recipient, Levels::Medium);
-//     stop_cheat_caller_address(contract_address);
-
-//     // Verify the mint worked
-//     assert(scavenger_hunt.has_level_badge(recipient, Levels::Medium), 'New minter should mint');
-
-//     // Set caller back to scavenger_hunt_address to revoke role
-//     start_cheat_caller_address(contract_address, scavenger_hunt_address);
-//     scavenger_hunt.revoke_minter_role(new_minter_address);
-//     stop_cheat_caller_address(contract_address);
-
-//     // Check if role was revoked
-//     assert(!scavenger_hunt.has_minter_role(new_minter_address), 'Role should be revoked');
-// }
-
 #[test]
 fn test_grant_revoke_minter_role() {
     // Create mock addresses for testing
@@ -327,7 +282,8 @@ fn test_grant_revoke_minter_role() {
     // Check if new_minter_address has minter role (should be false)
     assert(!scavenger_hunt.has_minter_role(new_minter_address), 'Should not have minter role');
 
-    // Set caller address to scavenger_hunt_address which should have both MINTER_ROLE and DEFAULT_ADMIN_ROLE
+    // Set caller address to scavenger_hunt_address which should have both MINTER_ROLE and
+    // DEFAULT_ADMIN_ROLE
     start_cheat_caller_address(contract_address, scavenger_hunt_address);
 
     // Grant minter role to new_minter_address
