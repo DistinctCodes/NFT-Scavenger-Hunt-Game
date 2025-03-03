@@ -133,7 +133,7 @@ mod ScavengerHunt {
             self.question_per_level.write(amount);
         }
 
-        fn get_question_per_level(self: @ContractState, count: u8) -> u8 {
+        fn get_question_per_level(self: @ContractState) -> u8 {
             self.question_per_level.read()
         }
 
@@ -172,8 +172,10 @@ mod ScavengerHunt {
 
         fn submit_answer(ref self: ContractState, question_id: u64, answer: ByteArray) -> bool {
             let question_data = self.questions.read(question_id);
+
             let caller = get_caller_address(); // Fetch caller's address
 
+            // Retrieve the level progress for the caller
             let mut level_progress = self
                 .player_level_progress
                 .read((caller, question_data.level.into()));
@@ -189,8 +191,17 @@ mod ScavengerHunt {
                 level_progress.last_question_index += 1;
 
                 let total_questions = self.question_per_level.read();
+
+                // if last question in a level
                 if level_progress.last_question_index >= total_questions {
                     level_progress.is_completed = true;
+
+                    // Fetch overall player progress
+                    let mut overall_progress = self.player_progress.read(caller);
+
+                    // Update to the next level
+                    overall_progress.current_level = self.next_level(question_data.level);
+                    self.player_progress.write(caller, overall_progress);
                 }
 
                 // Update storage
@@ -249,6 +260,22 @@ mod ScavengerHunt {
 
             // Emit an event
             self.emit(QuestionUpdated { question_id, level: original_level });
+        }
+
+        fn next_level(self: @ContractState, level: Levels) -> Levels {
+            match level {
+                Levels::Easy => Levels::Medium,
+                Levels::Medium => Levels::Hard,
+                Levels::Hard => Levels::Master,
+                Levels::Master => Levels::Master,
+            }
+        }
+
+        fn get_player_level(self: @ContractState, player: ContractAddress) -> ByteArray {
+            let player_progress = self.player_progress.read(player);
+            let player_level = player_progress.current_level;
+
+            player_level.into() // Explicitly returning the converted value
         }
     }
 }
