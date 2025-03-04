@@ -27,10 +27,10 @@ pub trait IScavengerHunt<TContractState> {
         hint: ByteArray,
     );
     fn next_level(self: @TContractState, level: Levels) -> Levels;
-    fn get_player_level(self: @TContractState, player: ContractAddress) -> ByteArray;
+    fn get_player_level(self: @TContractState, player: ContractAddress) -> Levels;
 }
 
-#[derive(Drop, Serde, starknet::Store)]
+#[derive(Drop, Debug, Serde, starknet::Store)]
 pub struct Question {
     pub question_id: u64,
     pub question: ByteArray,
@@ -39,7 +39,7 @@ pub struct Question {
     pub hint: ByteArray,
 }
 
-#[derive(Drop, Copy, Serde, PartialEq, starknet::Store)]
+#[derive(Drop, Debug, Copy, Serde, PartialEq, starknet::Store)]
 pub enum Levels {
     #[default]
     Easy,
