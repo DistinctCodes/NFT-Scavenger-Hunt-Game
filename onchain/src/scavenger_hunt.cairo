@@ -171,11 +171,16 @@ mod ScavengerHunt {
         }
 
         fn submit_answer(ref self: ContractState, question_id: u64, answer: ByteArray) -> bool {
+            let caller = get_caller_address();
+
+            // Check if player is initialized
+            assert!(self.player_progress.read(caller).is_initialized, "Player not initialized");
+
             let question_data = self.questions.read(question_id);
 
-            let caller = get_caller_address(); // Fetch caller's address
+            // Validate question exists
+            assert!(question_data.question_id == question_id, "Question not found");
 
-            // Retrieve the level progress for the caller
             let mut level_progress = self
                 .player_level_progress
                 .read((caller, question_data.level.into()));
@@ -184,7 +189,7 @@ mod ScavengerHunt {
             level_progress.attempts += 1;
 
             // Hash the answer ByteArray
-            let hashed_answer = hash_byte_array(answer.clone()); // Clone to avoid ownership issues
+            let hashed_answer = hash_byte_array(answer.clone());
 
             if question_data.hashed_answer == hashed_answer {
                 // Correct answer
@@ -192,14 +197,15 @@ mod ScavengerHunt {
 
                 let total_questions = self.question_per_level.read();
 
-                // if last question in a level
+                // Ensure total_questions is set
+                assert!(total_questions > 0, "Questions per level not set");
+
+                // If last question in a level
                 if level_progress.last_question_index >= total_questions {
                     level_progress.is_completed = true;
 
-                    // Fetch overall player progress
+                    // Fetch and update overall player progress
                     let mut overall_progress = self.player_progress.read(caller);
-
-                    // Update to the next level
                     overall_progress.current_level = self.next_level(question_data.level);
                     self.player_progress.write(caller, overall_progress);
                 }
@@ -208,6 +214,7 @@ mod ScavengerHunt {
                 self
                     .player_level_progress
                     .write((caller, question_data.level.into()), level_progress);
+
                 return true;
             }
 
@@ -271,11 +278,11 @@ mod ScavengerHunt {
             }
         }
 
-        fn get_player_level(self: @ContractState, player: ContractAddress) -> ByteArray {
+        fn get_player_level(self: @ContractState, player: ContractAddress) -> Levels {
             let player_progress = self.player_progress.read(player);
             let player_level = player_progress.current_level;
 
-            player_level.into() // Explicitly returning the converted value
+            player_level
         }
     }
 }
