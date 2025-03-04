@@ -433,14 +433,11 @@ fn test_multiple_level_progressions() {
     // Initial level check
     let player_progress = dispatcher.get_player_level(player_address);
     let player_level = player_progress.into();
-    println!("Player's current level before submitting answers: {:?}", player_level);
     assert!(player_level == 'EASY', "Player should start at Easy level");
 
     // Easy level submissions (IDs 1-2)
     let result_easy_1 = dispatcher.submit_answer(1, "A1");
-    println!("Result of Easy Q1: {:?}", result_easy_1);
     let result_easy_2 = dispatcher.submit_answer(2, "A2");
-    println!("Result of Easy Q2: {:?}", result_easy_2);
     assert!(result_easy_1 && result_easy_2, "Easy answers should be correct for questions 1 and 2");
     let after_easy_progress = dispatcher.get_player_level(player_address);
     let after_easy_level = after_easy_progress.into();
