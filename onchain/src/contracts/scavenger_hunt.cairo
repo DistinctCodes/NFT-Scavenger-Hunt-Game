@@ -1,5 +1,5 @@
 #[starknet::contract]
-mod ScavengerHunt {
+pub mod ScavengerHunt {
     use starknet::event::EventEmitter;
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
@@ -187,69 +187,73 @@ mod ScavengerHunt {
             self.emit(PlayerInitialized { player_address, level: 'EASY', is_initialized: true });
         }
 
-    fn submit_answer(ref self: ContractState, question_id: u64, answer: ByteArray) -> bool {
-    let caller = get_caller_address();
-    
-    // Check if player is initialized
-    let player_progress = self.player_progress.read(caller);
-    assert!(player_progress.is_initialized, "Player not initialized");
-    
-    // Validate question exists
-    let question_data = self.questions.read(question_id);
-    assert!(question_data.question_id == question_id, "Question not found");
-    
-    // Get and update level progress
-    let mut level_progress = self.player_level_progress.read((caller, question_data.level.into()));
-    
-    // Hash the answer
-    let hashed_answer = hash_byte_array(answer);
-    let is_correct = question_data.hashed_answer == hashed_answer;
-    
-    // Increment attempts
-    level_progress.attempts += 1;
-    
-    if is_correct {
-        // Correct answer logic
-        level_progress.last_question_index += 1;
-        let total_questions = self.question_per_level.read();
-        assert!(total_questions > 0, "Questions per level not set");
-        
-        // Check level completion
-        if level_progress.last_question_index >= total_questions {
-            level_progress.is_completed = true;
-            
-            // Update player's current level
-            let next_level = self.next_level(question_data.level);
-            self.player_progress.write(caller, 
-                PlayerProgress {
-                    address: caller,
-                    current_level: next_level,
-                    is_initialized: true
+        fn submit_answer(ref self: ContractState, question_id: u64, answer: ByteArray) -> bool {
+            let caller = get_caller_address();
+
+            // Check if player is initialized
+            let player_progress = self.player_progress.read(caller);
+            assert!(player_progress.is_initialized, "Player not initialized");
+
+            // Validate question exists
+            let question_data = self.questions.read(question_id);
+            assert!(question_data.question_id == question_id, "Question not found");
+
+            // Get and update level progress
+            let mut level_progress = self
+                .player_level_progress
+                .read((caller, question_data.level.into()));
+
+            // Hash the answer
+            let hashed_answer = hash_byte_array(answer);
+            let is_correct = question_data.hashed_answer == hashed_answer;
+
+            // Increment attempts
+            level_progress.attempts += 1;
+
+            if is_correct {
+                // Correct answer logic
+                level_progress.last_question_index += 1;
+                let total_questions = self.question_per_level.read();
+                assert!(total_questions > 0, "Questions per level not set");
+
+                // Check level completion
+                if level_progress.last_question_index >= total_questions {
+                    level_progress.is_completed = true;
+
+                    // Update player's current level
+                    let next_level = self.next_level(question_data.level);
+                    self
+                        .player_progress
+                        .write(
+                            caller,
+                            PlayerProgress {
+                                address: caller, current_level: next_level, is_initialized: true
+                            }
+                        );
+
+                    // Emit level completion event
+                    self
+                        .emit(
+                            LevelCompleted {
+                                player: caller, completed_level: question_data.level, next_level
+                            }
+                        );
                 }
-            );
-            
-            // Emit level completion event
-            self.emit(LevelCompleted { 
-                player: caller, 
-                completed_level: question_data.level,
-                next_level
-            });
+            }
+
+            // Update storage for attempts
+            self.player_level_progress.write((caller, question_data.level.into()), level_progress);
+
+            // Emit answer submission event
+            self
+                .emit(
+                    AnswerSubmitted {
+                        player: caller, question_id, level: question_data.level, is_correct
+                    }
+                );
+
+            is_correct
         }
-    }
-    
-    // Update storage for attempts
-    self.player_level_progress.write((caller, question_data.level.into()), level_progress);
-    
-    // Emit answer submission event
-    self.emit(AnswerSubmitted {
-        player: caller,
-        question_id,
-        level: question_data.level,
-        is_correct
-    });
-    
-    is_correct
-}
 
         fn request_hint(self: @ContractState, question_id: u64) -> ByteArray {
             // Retrieve the question from storage
