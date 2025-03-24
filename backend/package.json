@@ -31,7 +31,6 @@
     "@nestjs/swagger": "^11.0.3",
     "@nestjs/typeorm": "^11.0.0",
     "aws-sdk": "^2.1692.0",
-    "@nestjs/platform-express": "^11.0.6",
     "@nestjs/platform-socket.io": "^11.0.10",
     "@nestjs/websockets": "^11.0.10",
     "axios": "^1.0.0",
