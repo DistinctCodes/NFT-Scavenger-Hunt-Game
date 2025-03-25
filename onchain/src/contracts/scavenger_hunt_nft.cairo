@@ -32,7 +32,6 @@ pub mod ScavengerHuntNFT {
 
     #[storage]
     struct Storage {
-        
         #[substorage(v0)]
         erc1155: ERC1155Component::Storage,
         #[substorage(v0)]
