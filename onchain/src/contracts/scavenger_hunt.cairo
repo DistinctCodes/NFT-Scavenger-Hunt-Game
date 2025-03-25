@@ -105,11 +105,7 @@ pub mod ScavengerHunt {
     }
 
     #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        admin: ContractAddress,
-        nft_contract: ContractAddress
-    ) {
+    fn constructor(ref self: ContractState, admin: ContractAddress, nft_contract: ContractAddress) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
         self.nft_contract.write(nft_contract);
@@ -170,24 +166,28 @@ pub mod ScavengerHunt {
 
             assert!(!player_progress.is_initialized, "Player already initialized");
 
-            self.player_progress.write(
-                player_address,
-                PlayerProgress {
-                    address: player_address, current_level: Levels::Easy, is_initialized: true,
-                },
-            );
+            self
+                .player_progress
+                .write(
+                    player_address,
+                    PlayerProgress {
+                        address: player_address, current_level: Levels::Easy, is_initialized: true,
+                    },
+                );
 
-            self.player_level_progress.write(
-                (player_address, Levels::Easy.into()),
-                LevelProgress {
-                    player: player_address,
-                    level: Levels::Easy,
-                    last_question_index: 0,
-                    is_completed: false,
-                    attempts: 0,
-                    nft_minted: false,
-                },
-            );
+            self
+                .player_level_progress
+                .write(
+                    (player_address, Levels::Easy.into()),
+                    LevelProgress {
+                        player: player_address,
+                        level: Levels::Easy,
+                        last_question_index: 0,
+                        is_completed: false,
+                        attempts: 0,
+                        nft_minted: false,
+                    },
+                );
 
             self.emit(PlayerInitialized { player_address, level: 'EASY', is_initialized: true });
         }
@@ -232,21 +232,27 @@ pub mod ScavengerHunt {
                         .write(
                             caller,
                             PlayerProgress {
-                                address: caller, current_level: next_level, is_initialized: true
-                            }
+                                address: caller, current_level: next_level, is_initialized: true,
+                            },
                         );
 
-                    self.emit(LevelCompleted {
-                        player: caller, completed_level: question_data.level, next_level
-                    });
+                    self
+                        .emit(
+                            LevelCompleted {
+                                player: caller, completed_level: question_data.level, next_level,
+                            },
+                        );
                 }
             }
 
             // Update storage for attempts
             self.player_level_progress.write((caller, question_data.level.into()), level_progress);
-            self.emit(AnswerSubmitted {
-                player: caller, question_id, level: question_data.level, is_correct
-            });
+            self
+                .emit(
+                    AnswerSubmitted {
+                        player: caller, question_id, level: question_data.level, is_correct,
+                    },
+                );
 
             is_correct
         }
@@ -312,21 +318,23 @@ pub mod ScavengerHunt {
         fn claim_level_completion_nft(ref self: ContractState, level: Levels) {
             let caller = get_caller_address();
             let mut level_progress = self.player_level_progress.read((caller, level.into()));
-            
+
             assert!(level_progress.is_completed, "Level not completed");
             assert!(!level_progress.nft_minted, "NFT already minted for this level");
 
             let nft_contract = self.nft_contract.read();
             IScavengerHuntNFTDispatcher { contract_address: nft_contract }
                 .mint_level_badge(caller, level);
-            
+
             level_progress.nft_minted = true;
             self.player_level_progress.write((caller, level.into()), level_progress);
-            
-            self.emit(LevelBadgeMinted {
-                player: caller,
-                level,
-            });
+
+            self.emit(LevelBadgeMinted { player: caller, level });
+        }
+        fn get_player_level_progress(
+            self: @ContractState, player: ContractAddress, level: Levels,
+        ) -> LevelProgress {
+            self.player_level_progress.read((player, level.into()))
         }
     }
 }

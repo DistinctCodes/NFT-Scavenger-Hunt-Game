@@ -7,7 +7,9 @@ use snforge_std::{
 
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
 use onchain::utils::hash_byte_array;
-
+use onchain::contracts::scavenger_hunt_nft::{
+    IScavengerHuntNFTDispatcher, IScavengerHuntNFTDispatcherTrait,
+};
 
 fn ADMIN() -> ContractAddress {
     contract_address_const::<'ADMIN'>()
@@ -314,7 +316,7 @@ fn test_level_progression() {
     let player_new_level = updated_progress.into();
     assert!(
         player_new_level == 'MEDIUM',
-        "Player should have progressed to MEDIUM level, but is still at EASY"
+        "Player should have progressed to MEDIUM level, but is still at EASY",
     );
 
     stop_cheat_caller_address(contract_address);
@@ -345,7 +347,8 @@ fn test_no_progression_on_partial_completion() {
     let current_level = dispatcher.get_player_level(player_address);
     let level_felt = current_level.into();
     assert!(
-        level_felt == 'EASY', "Player should still be at Easy since all questions were not answered"
+        level_felt == 'EASY',
+        "Player should still be at Easy since all questions were not answered",
     );
 
     stop_cheat_caller_address(contract_address);
@@ -397,7 +400,7 @@ fn test_max_level_does_not_progress() {
     let current_level = dispatcher.get_player_level(player_address);
     let level_felt = current_level.into();
     assert!(
-        level_felt == 'MASTER', "Player should remain at Master after completing all questions"
+        level_felt == 'MASTER', "Player should remain at Master after completing all questions",
     );
 
     stop_cheat_caller_address(contract_address);
@@ -463,7 +466,8 @@ fn test_multiple_level_progressions() {
     let result_master_1 = dispatcher.submit_answer(7, "A1");
     let result_master_2 = dispatcher.submit_answer(8, "A2");
     assert!(
-        result_master_1 && result_master_2, "Master answers should be correct for questions 7 and 8"
+        result_master_1 && result_master_2,
+        "Master answers should be correct for questions 7 and 8",
     );
     let after_master_progress = dispatcher.get_player_level(player_address);
     let after_master_level = after_master_progress.into();
@@ -471,4 +475,60 @@ fn test_multiple_level_progressions() {
 
     stop_cheat_caller_address(contract_address);
 }
+#[test]
+fn test_level_nft_minting() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+    let nft = IScavengerHuntNFTDispatcher { contract_address };
 
+    // Setup test level
+    start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.set_question_per_level(1);
+    dispatcher.add_question(Levels::Easy, "Q?", "A", "H");
+    stop_cheat_caller_address(contract_address);
+
+    // Player completes level
+    start_cheat_caller_address(contract_address, USER());
+    dispatcher.initialize_player_progress(USER());
+    dispatcher.submit_answer(1, "A");
+
+    // Test NFT claiming
+    dispatcher.claim_level_completion_nft(Levels::Easy);
+
+    // Verify NFT was minted
+    assert!(nft.has_level_badge(USER(), Levels::Easy), "NFT not minted");
+
+    // Check that the player's progress reflects the minted NFT
+    let progress = dispatcher.get_player_level_progress(USER(), Levels::Easy);
+    assert!(progress.nft_minted, "NFT mint flag not set");
+
+    stop_cheat_caller_address(contract_address);
+}
+
+#[test]
+#[should_panic(expected: "Level not completed")]
+fn test_nft_minting_before_completion() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // Attempt to claim NFT without completing the level
+    start_cheat_caller_address(contract_address, USER());
+    dispatcher.initialize_player_progress(USER());
+    dispatcher.claim_level_completion_nft(Levels::Easy); // Should panic
+}
+
+#[test]
+#[should_panic(expected: "NFT already minted")]
+fn test_double_nft_minting() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // Complete level and claim once
+    start_cheat_caller_address(contract_address, USER());
+    dispatcher.initialize_player_progress(USER());
+    dispatcher.submit_answer(1, "A");
+    dispatcher.claim_level_completion_nft(Levels::Easy);
+
+    // Attempt to claim the NFT again
+    dispatcher.claim_level_completion_nft(Levels::Easy); // Should panic
+}

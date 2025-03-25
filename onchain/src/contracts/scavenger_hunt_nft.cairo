@@ -53,7 +53,7 @@ pub mod ScavengerHuntNFT {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, token_uri: ByteArray, scavenger_hunt_contract: ContractAddress
+        ref self: ContractState, token_uri: ByteArray, scavenger_hunt_contract: ContractAddress,
     ) {
         // Initialize ERC-1155 with metadata URI
         self.erc1155.initializer(token_uri);
