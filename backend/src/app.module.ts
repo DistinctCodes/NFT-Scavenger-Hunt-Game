@@ -18,8 +18,13 @@ import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from './auth/config/jwt.config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthTokenGuard } from './auth/guard/auth-token/auth-token.guard';
+import { NotificationSettingsModule } from './notification-settings/notification-settings.module';
+import { RankModule } from './rank/rank.module';
 import { LevelModule } from './level/level.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { ApiTrackingModule } from './api-tracking/api-tracking.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ApiTrackingInterceptor } from './api-tracking/interceptor/api-tracking.interceptor';
 // Remove unused import of Puzzles entity
 import { PuzzleSubscriber } from './level/decorators/subscriber-decorator';
 import { RankService } from './rank/providers/rank.service';
@@ -28,11 +33,8 @@ import { StripeModule } from './stripe/stripe.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { EmailModule } from './email/email.module';
-
 import { UserActivityLogsModule } from './user-activity-logs/user-activity-logs.module';
-
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
-import { HealthCheckModuleModule } from './health-check-module/health-check-module.module';
 
 
 @Module({
@@ -76,12 +78,18 @@ import { HealthCheckModuleModule } from './health-check-module/health-check-modu
     SubscriptionModule,
 
     EmailModule,
+    EmailChangeModule,
 
 
     UserActivityLogsModule,
     AuditLogsModule,
     HealthCheckModuleModule,
 
+    ApiTrackingModule,
+    // JWT configuration
+    ConfigModule.forFeature(jwtConfig),
+    JwtModule.registerAsync(jwtConfig.asProvider()),
+    NotificationSettingsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -92,6 +100,10 @@ import { HealthCheckModuleModule } from './health-check-module/health-check-modu
     {
       provide: APP_GUARD,
       useClass: AuthTokenGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiTrackingInterceptor,
     },
   ],
 })
