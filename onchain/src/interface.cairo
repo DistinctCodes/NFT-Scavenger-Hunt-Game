@@ -11,8 +11,7 @@ pub trait IScavengerHunt<TContractState> {
     );
     fn get_question(self: @TContractState, question_id: u64) -> Question;
     fn set_question_per_level(ref self: TContractState, amount: u8);
-    fn get_question_per_level(self: @TContractState) -> u8;
-    fn initialize_player_progress(ref self: TContractState, player_address: ContractAddress);
+    fn get_question_per_level(self: @TContractState) -> u8;    
     fn submit_answer(ref self: TContractState, question_id: u64, answer: ByteArray) -> bool;
     fn request_hint(
         self: @TContractState, question_id: u64,
@@ -27,7 +26,7 @@ pub trait IScavengerHunt<TContractState> {
         hint: ByteArray,
     );
     fn next_level(self: @TContractState, level: Levels) -> Levels;
-    fn get_player_level(self: @TContractState, player: ContractAddress) -> Levels;
+    fn get_player_level(ref self: TContractState, player: ContractAddress) -> Levels;
 }
 
 #[derive(Drop, Debug, Serde, starknet::Store)]

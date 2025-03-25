@@ -1,18 +1,18 @@
 #[starknet::contract]
 pub mod ScavengerHunt {
+    use AccessControlComponent::InternalTrait;
+    use core::array::ArrayTrait;
+    use core::felt252;
+    use onchain::interface::{IScavengerHunt, LevelProgress, Levels, PlayerProgress, Question};
+    use onchain::utils::hash_byte_array;
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
+    use openzeppelin::introspection::src5::SRC5Component;
     use starknet::event::EventEmitter;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
-        StorageMapReadAccess, StorageMapWriteAccess,
+        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePathEntry,
+        StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_caller_address};
-    use openzeppelin::introspection::src5::SRC5Component;
-    use openzeppelin::access::accesscontrol::AccessControlComponent;
-    use AccessControlComponent::InternalTrait;
-    use onchain::interface::{IScavengerHunt, Question, Levels, PlayerProgress, LevelProgress};
-    use core::array::{ArrayTrait};
-    use core::felt252;
-    use onchain::utils::hash_byte_array;
 
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
@@ -154,44 +154,15 @@ pub mod ScavengerHunt {
             self.question_per_level.read()
         }
 
-        fn initialize_player_progress(ref self: ContractState, player_address: ContractAddress) {
-            let player_progress = self.player_progress.entry(player_address).read();
-
-            assert!(!player_progress.is_initialized, "Player already initialized");
-
-            // initialize player progess
-            self
-                .player_progress
-                .write(
-                    player_address,
-                    PlayerProgress {
-                        address: player_address, current_level: Levels::Easy, is_initialized: true,
-                    },
-                );
-
-            // set player current level
-            self
-                .player_level_progress
-                .write(
-                    (player_address, Levels::Easy.into()),
-                    LevelProgress {
-                        player: player_address,
-                        level: Levels::Easy,
-                        last_question_index: 0,
-                        is_completed: false,
-                        attempts: 0,
-                        nft_minted: false,
-                    },
-                );
-
-            self.emit(PlayerInitialized { player_address, level: 'EASY', is_initialized: true });
-        }
 
         fn submit_answer(ref self: ContractState, question_id: u64, answer: ByteArray) -> bool {
             let caller = get_caller_address();
 
             // Check if player is initialized
             let player_progress = self.player_progress.read(caller);
+            if !player_progress.is_initialized {
+                self.initialize_player_progress(caller);
+            }
             assert!(player_progress.is_initialized, "Player not initialized");
 
             // Validate question exists
@@ -227,16 +198,16 @@ pub mod ScavengerHunt {
                         .write(
                             caller,
                             PlayerProgress {
-                                address: caller, current_level: next_level, is_initialized: true
-                            }
+                                address: caller, current_level: next_level, is_initialized: true,
+                            },
                         );
 
                     // Emit level completion event
                     self
                         .emit(
                             LevelCompleted {
-                                player: caller, completed_level: question_data.level, next_level
-                            }
+                                player: caller, completed_level: question_data.level, next_level,
+                            },
                         );
                 }
             }
@@ -248,8 +219,8 @@ pub mod ScavengerHunt {
             self
                 .emit(
                     AnswerSubmitted {
-                        player: caller, question_id, level: question_data.level, is_correct
-                    }
+                        player: caller, question_id, level: question_data.level, is_correct,
+                    },
                 );
 
             is_correct
@@ -310,11 +281,55 @@ pub mod ScavengerHunt {
             }
         }
 
-        fn get_player_level(self: @ContractState, player: ContractAddress) -> Levels {
+        fn get_player_level(ref self: ContractState, player: ContractAddress) -> Levels {
             let player_progress = self.player_progress.read(player);
-            let player_level = player_progress.current_level;
 
-            player_level
+            if !player_progress.is_initialized {
+                // Initialize player if not initialized
+                self.initialize_player_progress(player);
+                // After initialization, read the progress again
+                let updated_progress = self.player_progress.read(player);
+                return updated_progress.current_level;
+            }
+
+            // If already initialized, return the current level
+            player_progress.current_level
+        }
+    }
+
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {
+        fn initialize_player_progress(ref self: ContractState, player_address: ContractAddress) {
+            let player_progress = self.player_progress.entry(player_address).read();
+
+            assert!(!player_progress.is_initialized, "Player already initialized");
+
+            // initialize player progess
+            self
+                .player_progress
+                .write(
+                    player_address,
+                    PlayerProgress {
+                        address: player_address, current_level: Levels::Easy, is_initialized: true,
+                    },
+                );
+
+            // set player current level
+            self
+                .player_level_progress
+                .write(
+                    (player_address, Levels::Easy.into()),
+                    LevelProgress {
+                        player: player_address,
+                        level: Levels::Easy,
+                        last_question_index: 0,
+                        is_completed: false,
+                        attempts: 0,
+                        nft_minted: false,
+                    },
+                );
+
+            self.emit(PlayerInitialized { player_address, level: 'EASY', is_initialized: true });
         }
     }
 }

@@ -2,11 +2,15 @@ use starknet::{ContractAddress, contract_address_const};
 
 use snforge_std::{
     declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-    stop_cheat_caller_address,
+    stop_cheat_caller_address,EventSpyAssertionsTrait,spy_events,
 };
 
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
 use onchain::utils::hash_byte_array;
+
+use onchain::contracts::scavenger_hunt::ScavengerHunt;
+use onchain::contracts::scavenger_hunt::ScavengerHunt::{InternalFunctionsTrait, ContractState, PlayerProgress, LevelProgress, PlayerInitialized};
+
 
 
 fn ADMIN() -> ContractAddress {
@@ -296,8 +300,7 @@ fn test_level_progression() {
     stop_cheat_caller_address(contract_address);
 
     // Player actions (keep caller as player_address throughout)
-    start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
+    start_cheat_caller_address(contract_address, player_address);   
 
     let player_progress = dispatcher.get_player_level(player_address);
     let player_level = player_progress.into();
@@ -334,8 +337,7 @@ fn test_no_progression_on_partial_completion() {
     stop_cheat_caller_address(contract_address);
 
     // Player setup
-    start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
+    start_cheat_caller_address(contract_address, player_address);   
 
     // Submit 2 out of 3 answers
     dispatcher.submit_answer(1, "A1");
@@ -362,8 +364,7 @@ fn test_incorrect_answer_does_not_progress() {
     dispatcher.add_question(Levels::Easy, "Q1?", "Correct", "Hint");
     stop_cheat_caller_address(contract_address);
 
-    start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
+    start_cheat_caller_address(contract_address, player_address);   
 
     let result = dispatcher.submit_answer(1, "Wrong");
     assert!(!result, "Submitting an incorrect answer should return false");
@@ -388,7 +389,7 @@ fn test_max_level_does_not_progress() {
     stop_cheat_caller_address(contract_address);
 
     start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
+
     // Manually set to Master (assuming we add this function or cheat state)
     // For now, simulate by answering prior levels or modify contract
     dispatcher.submit_answer(1, "Final A1");
@@ -427,8 +428,10 @@ fn test_multiple_level_progressions() {
     stop_cheat_caller_address(contract_address);
 
     // Player setup
-    start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
+    start_cheat_caller_address(contract_address, player_address);    
+
+    let progress = dispatcher.get_player_level(player_address);
+    assert!(progress == Levels::Easy, "Should be initialized");
 
     // Initial level check
     let player_progress = dispatcher.get_player_level(player_address);
@@ -471,4 +474,60 @@ fn test_multiple_level_progressions() {
 
     stop_cheat_caller_address(contract_address);
 }
+
+#[test]
+fn test_initialize_player_progress() {
+    // Get contract state for testing
+    let mut state = ScavengerHunt::contract_state_for_testing();
+    let player_address = USER();
+    let test_contract_address = deploy_contract();
+    
+    // Set up spy for events
+    let mut spy = spy_events();
+    
+    // Call the internal function directly
+    state.initialize_player_progress(player_address);
+    
+    // Verify the player was initialized correctly
+    let player_progress = state.player_progress.read(player_address);
+    assert!(player_progress.is_initialized, "Player should be initialized");
+    assert!(player_progress.current_level == Levels::Easy, "Player should start at Easy level");
+    assert!(player_progress.address == player_address, "Player address should match");
+    
+    // Verify level progress was initialized correctly
+    let level_progress = state.player_level_progress.read((player_address, Levels::Easy.into()));
+    assert!(level_progress.player == player_address, "Level progress player should match");
+    assert!(level_progress.level == Levels::Easy, "Level should be Easy");
+    assert!(level_progress.last_question_index == 0, "Last question index should be 0");
+    assert!(!level_progress.is_completed, "Level should not be completed");
+    assert!(level_progress.attempts == 0, "Attempts should be 0");
+    assert!(!level_progress.nft_minted, "NFT should not be minted");
+    
+    // Verify the event was emitted
+    spy.assert_emitted(@array![
+        (
+            test_contract_address,
+            PlayerInitialized { 
+                player_address, 
+                level: 'EASY', 
+                is_initialized: true 
+            }
+        )
+    ]);
+}
+
+#[test]
+    #[should_panic(expected: "Player already initialized")]
+    fn test_initialize_player_progress_already_initialized() {
+        // Get contract state for testing
+        let mut state = ScavengerHunt::contract_state_for_testing();
+        let player_address = USER();
+        
+        // First initialization should succeed
+        state.initialize_player_progress(player_address);
+        
+        // Second initialization should panic
+        state.initialize_player_progress(player_address);
+    }
+
 
