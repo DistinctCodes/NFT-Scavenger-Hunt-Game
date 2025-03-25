@@ -1,0 +1,1 @@
+{"version":3,"file":"storage-exceeded.error.js","sourceRoot":"","sources":["../../lib/errors/storage-exceeded.error.ts"],"names":[],"mappings":";;;AAAA,4CAA4C;AAC5C,2DAAuD;AACvD,2EAAsE;AAEtE;;;;;;;;GAQG;AACH,MAAa,oBAAqB,SAAQ,qCAAgB;IACxD;;;;;;;OAOG;IACH,YAAY,OAAe,EAAE,KAAU;QACrC,KAAK,CAAC,IAAA,oCAAgB,EAAC,OAAO,CAAC,EAAE,KAAK,CAAC,CAAC;IAC1C,CAAC;CACF;AAZD,oDAYC"}

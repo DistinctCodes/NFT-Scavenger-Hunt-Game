@@ -32,6 +32,7 @@ import { EmailModule } from './email/email.module';
 import { UserActivityLogsModule } from './user-activity-logs/user-activity-logs.module';
 
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { HealthCheckModuleModule } from './health-check-module/health-check-module.module';
 
 
 @Module({
@@ -79,6 +80,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
 
     UserActivityLogsModule,
     AuditLogsModule,
+    HealthCheckModuleModule,
 
   ],
   controllers: [AppController],

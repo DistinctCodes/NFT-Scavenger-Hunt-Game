@@ -1,0 +1,1 @@
+{"version":3,"file":"database-not-connected.error.js","sourceRoot":"","sources":["../../lib/errors/database-not-connected.error.ts"],"names":[],"mappings":";;;AAAA,2DAA6D;AAE7D;;;GAGG;AACH,MAAa,yBAA0B,SAAQ,KAAK;IAClD;QACE,KAAK,CAAC,0CAAsB,CAAC,CAAC;IAChC,CAAC;CACF;AAJD,8DAIC"}
