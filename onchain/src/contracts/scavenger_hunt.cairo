@@ -36,7 +36,7 @@ pub mod ScavengerHunt {
         questions_by_level: Map<(felt252, u8), u64>, // (levels, index) -> question_id
         question_per_level: u8,
         question_per_level_index: Map<felt252, u8>,
-        player_progress: Map<ContractAddress, PlayerProgress>,
+        pub player_progress: Map<ContractAddress, PlayerProgress>,
         player_level_progress: Map<
             (ContractAddress, felt252), LevelProgress,
         >, // (user, level) -> LevelProgress
@@ -93,6 +93,7 @@ pub mod ScavengerHunt {
         pub level: Levels,
         pub is_correct: bool,
     }
+
 
     #[constructor]
     fn constructor(ref self: ContractState, admin: ContractAddress) {
@@ -298,7 +299,7 @@ pub mod ScavengerHunt {
     }
 
     #[generate_trait]
-    impl InternalFunctions of InternalFunctionsTrait {
+    pub impl InternalFunctions of InternalFunctionsTrait {
         fn initialize_player_progress(ref self: ContractState, player_address: ContractAddress) {
             let player_progress = self.player_progress.entry(player_address).read();
 
