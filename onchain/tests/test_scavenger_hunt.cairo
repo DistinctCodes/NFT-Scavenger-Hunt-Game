@@ -1,12 +1,12 @@
 use onchain::contracts::scavenger_hunt::ScavengerHunt;
 use onchain::contracts::scavenger_hunt::ScavengerHunt::{
-    ContractState, InternalFunctionsTrait,PlayerInitialized,
+    ContractState, InternalFunctionsTrait, PlayerInitialized,
 };
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Levels, Question};
 use onchain::utils::hash_byte_array;
 use snforge_std::{
-    ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare, spy_events,
-    start_cheat_caller_address, stop_cheat_caller_address,assert_any_emitted,
+    ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, assert_any_emitted, declare,
+    spy_events, start_cheat_caller_address, stop_cheat_caller_address,
 };
 use starknet::{ContractAddress, contract_address_const};
 
@@ -498,7 +498,5 @@ fn test_initialize_player_progress() {
     assert!(!level_progress.is_completed, "Level should not be completed");
     assert!(level_progress.attempts == 0, "Attempts should be 0");
     assert!(!level_progress.nft_minted, "NFT should not be minted");
-
-    
 }
 

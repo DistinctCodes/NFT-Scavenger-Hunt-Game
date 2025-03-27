@@ -282,9 +282,11 @@ pub mod ScavengerHunt {
             }
         }
 
-        fn get_player_level(ref self: ContractState, player: ContractAddress) -> Levels {
-            let player_progress = self.player_progress.read(player);           
-            player_progress.current_level
+        fn get_player_level(self: @ContractState, player: ContractAddress) -> Levels {
+            let player_progress = self.player_progress.read(player);
+            let player_level = player_progress.current_level;
+
+            player_level
         }
     }
 

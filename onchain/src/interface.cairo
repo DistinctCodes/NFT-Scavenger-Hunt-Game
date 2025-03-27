@@ -26,7 +26,7 @@ pub trait IScavengerHunt<TContractState> {
         hint: ByteArray,
     );
     fn next_level(self: @TContractState, level: Levels) -> Levels;
-    fn get_player_level(ref self: TContractState, player: ContractAddress) -> Levels;
+    fn get_player_level(self: @TContractState, player: ContractAddress) -> Levels;
 }
 
 #[derive(Drop, Debug, Serde, starknet::Store)]

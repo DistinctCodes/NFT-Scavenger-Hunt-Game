@@ -12,7 +12,7 @@ pub fn hash_byte_array(byte_array: ByteArray) -> felt252 {
         let byte = byte_array.at(i).unwrap();
         felt_array.append(byte.into());
         i += 1;
-    };
+    }
 
     poseidon_hash_span(felt_array.span())
 }
