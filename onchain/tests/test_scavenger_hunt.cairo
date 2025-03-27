@@ -477,11 +477,11 @@ fn test_set_nft_contract_address() {
     let contract_address = deploy_contract();
     let dispatcher = IScavengerHuntDispatcher { contract_address };
     let new_nft_address = contract_address_const::<'NEW_NFT'>();
-    
+
     start_cheat_caller_address(contract_address, ADMIN());
     dispatcher.set_nft_contract_address(new_nft_address);
     stop_cheat_caller_address(contract_address);
-    
+
     let stored_address = dispatcher.get_nft_contract_address();
     assert!(stored_address == new_nft_address, "wrong_nft_address");
 }
@@ -492,6 +492,6 @@ fn test_set_nft_contract_address_should_panic_with_missing_role() {
     let contract_address = deploy_contract();
     let dispatcher = IScavengerHuntDispatcher { contract_address };
     let new_nft_address = contract_address_const::<'NEW_NFT'>();
-    
+
     dispatcher.set_nft_contract_address(new_nft_address);
 }
