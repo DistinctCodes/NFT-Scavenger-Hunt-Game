@@ -476,6 +476,7 @@ fn test_multiple_level_progressions() {
 }
 
 #[test]
+
 fn test_initialize_player_progress() {
     // Get contract state for testing
     let mut state = ScavengerHunt::contract_state_for_testing();
@@ -498,5 +499,29 @@ fn test_initialize_player_progress() {
     assert!(!level_progress.is_completed, "Level should not be completed");
     assert!(level_progress.attempts == 0, "Attempts should be 0");
     assert!(!level_progress.nft_minted, "NFT should not be minted");
+}
+
+
+fn test_set_nft_contract_address() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+    let new_nft_address = contract_address_const::<'NEW_NFT'>();
+
+    start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.set_nft_contract_address(new_nft_address);
+    stop_cheat_caller_address(contract_address);
+
+    let stored_address = dispatcher.get_nft_contract_address();
+    assert!(stored_address == new_nft_address, "wrong_nft_address");
+}
+
+#[test]
+#[should_panic(expected: 'Caller is missing role')]
+fn test_set_nft_contract_address_should_panic_with_missing_role() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+    let new_nft_address = contract_address_const::<'NEW_NFT'>();
+
+    dispatcher.set_nft_contract_address(new_nft_address);
 }
 
