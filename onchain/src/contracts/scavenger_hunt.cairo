@@ -169,10 +169,10 @@ pub mod ScavengerHunt {
 
             // Check if player is initialized
             let player_progress = self.player_progress.read(caller);
+
             if !player_progress.is_initialized {
                 self.initialize_player_progress(caller);
             }
-            assert!(player_progress.is_initialized, "Player not initialized");
 
             // Validate question exists
             let question_data = self.questions.read(question_id);

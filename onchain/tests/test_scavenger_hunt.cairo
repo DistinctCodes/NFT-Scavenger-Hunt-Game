@@ -1,14 +1,13 @@
 use onchain::contracts::scavenger_hunt::ScavengerHunt;
-use onchain::contracts::scavenger_hunt::ScavengerHunt::{
-    ContractState, InternalFunctionsTrait, PlayerInitialized,
-};
+use onchain::contracts::scavenger_hunt::ScavengerHunt::{InternalFunctionsTrait,};
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Levels, Question};
 use onchain::utils::hash_byte_array;
 use snforge_std::{
-    ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, assert_any_emitted, declare,
-    spy_events, start_cheat_caller_address, stop_cheat_caller_address,
+    ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare, spy_events,
+    start_cheat_caller_address, stop_cheat_caller_address,
 };
 use starknet::{ContractAddress, contract_address_const};
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
 
 
 fn ADMIN() -> ContractAddress {
@@ -476,7 +475,6 @@ fn test_multiple_level_progressions() {
 }
 
 #[test]
-
 fn test_initialize_player_progress() {
     // Get contract state for testing
     let mut state = ScavengerHunt::contract_state_for_testing();
