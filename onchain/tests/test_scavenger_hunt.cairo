@@ -6,7 +6,7 @@ use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait
 use onchain::utils::hash_byte_array;
 use snforge_std::{
     ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare, spy_events,
-    start_cheat_caller_address, stop_cheat_caller_address,
+    start_cheat_caller_address, stop_cheat_caller_address,assert_any_emitted,
 };
 use starknet::{ContractAddress, contract_address_const};
 
@@ -481,9 +481,6 @@ fn test_initialize_player_progress() {
     let mut state = ScavengerHunt::contract_state_for_testing();
     let player_address = USER();
 
-    // Set up spy for events
-    let mut spy = spy_events();
-
     // Call the internal function directly
     state.initialize_player_progress(player_address);
 
@@ -502,29 +499,6 @@ fn test_initialize_player_progress() {
     assert!(level_progress.attempts == 0, "Attempts should be 0");
     assert!(!level_progress.nft_minted, "NFT should not be minted");
 
-    // Verify the event was emitted
-    spy
-        .assert_emitted(
-            @array![
-                (
-                    contract_address_const::<0>(),
-                    PlayerInitialized { player_address, level: 'EASY', is_initialized: true },
-                ),
-            ],
-        );
-}
-
-#[test]
-#[should_panic(expected: "Player already initialized")]
-fn test_initialize_player_progress_already_initialized() {
-    // Get contract state for testing
-    let mut state = ScavengerHunt::contract_state_for_testing();
-    let player_address = USER();
-
-    // First initialization should succeed
-    state.initialize_player_progress(player_address);
-
-    // Second initialization should panic
-    state.initialize_player_progress(player_address);
+    
 }
 

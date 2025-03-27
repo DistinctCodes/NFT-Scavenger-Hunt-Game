@@ -283,17 +283,7 @@ pub mod ScavengerHunt {
         }
 
         fn get_player_level(ref self: ContractState, player: ContractAddress) -> Levels {
-            let player_progress = self.player_progress.read(player);
-
-            if !player_progress.is_initialized {
-                // Initialize player if not initialized
-                self.initialize_player_progress(player);
-                // After initialization, read the progress again
-                let updated_progress = self.player_progress.read(player);
-                return updated_progress.current_level;
-            }
-
-            // If already initialized, return the current level
+            let player_progress = self.player_progress.read(player);           
             player_progress.current_level
         }
     }
