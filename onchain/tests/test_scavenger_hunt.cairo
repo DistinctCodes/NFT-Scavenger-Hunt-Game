@@ -1,6 +1,6 @@
 use onchain::contracts::scavenger_hunt::ScavengerHunt;
 use onchain::contracts::scavenger_hunt::ScavengerHunt::{
-    ContractState, InternalFunctionsTrait, LevelProgress, PlayerInitialized, PlayerProgress,
+    ContractState, InternalFunctionsTrait,PlayerInitialized,
 };
 use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Levels, Question};
 use onchain::utils::hash_byte_array;
