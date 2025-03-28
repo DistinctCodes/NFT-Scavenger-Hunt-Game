@@ -177,7 +177,7 @@ fn test_update_question() {
     let contract_address = deploy_contract();
     let dispatcher = IScavengerHuntDispatcher { contract_address };
 
-    // Define initial test data
+    // Define the initial test data
     let level = Levels::Easy;
     let question = "What is the capital of France?";
     let answer = "Paris";
@@ -189,7 +189,7 @@ fn test_update_question() {
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
     stop_cheat_caller_address(contract_address);
 
-    // Define updated test data
+    // Define the  updated test data
     let updated_question = "What is the capital of Germany?";
     let updated_answer = "Berlin";
     let updated_hint = "It starts with 'B'";
@@ -471,4 +471,6 @@ fn test_multiple_level_progressions() {
 
     stop_cheat_caller_address(contract_address);
 }
+
+
 

@@ -110,6 +110,18 @@ pub mod ScavengerHunt {
             answer: ByteArray,
             hint: ByteArray,
         ) {
+             // Adding validation for add_question function
+
+             // Ensure question is not empty
+    assert(question.len() > 0, 'Question cannot be empty');
+    
+    // Ensure answer is not empty
+    assert(answer.len() > 0, 'Answer cannot be empty');
+    
+    // Ensure hint is not empty
+    assert(hint.len() > 0, 'Hint cannot be empty');
+    
+
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
 
             let question_id = self.question_count.read()
@@ -277,6 +289,18 @@ pub mod ScavengerHunt {
             level: Levels, // This would be updated in-time
             hint: ByteArray,
         ) {
+                // Validate that question_id is not zero
+      assert(question_id != 0, 'Invalid question ID');
+
+     // Validate that question is not empty
+      assert(question.len() > 0, 'Question cannot be empty');
+
+     // Validate that answer is not empty
+      assert(answer.len() > 0, 'Answer cannot be empty');
+
+     // Validate that hint is not empty
+      assert(hint.len() > 0, 'Hint cannot be empty');
+
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
 
             // Check if the question exists

@@ -307,8 +307,13 @@ fn test_grant_revoke_minter_role() {
     // Set caller back to scavenger_hunt_address to revoke role
     start_cheat_caller_address(contract_address, scavenger_hunt_address);
     scavenger_hunt.revoke_minter_role(new_minter_address);
-    stop_cheat_caller_address(contract_address);
+    stop_cheat_caller_ESRaddress(contract_address);
 
     // Check if role was revoked
     assert(!scavenger_hunt.has_minter_role(new_minter_address), 'Role should be revoked');
 }
+// Test for the validation of for empty inputs (questions, answers, hints).
+
+    #[test] fn add_question(){
+        
+    }
