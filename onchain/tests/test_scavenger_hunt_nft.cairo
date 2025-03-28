@@ -1,13 +1,13 @@
-use snforge_std::DeclareResultTrait;
-use starknet::ContractAddress;
-use snforge_std::{
-    declare, ContractClassTrait, start_cheat_caller_address, stop_cheat_caller_address,
-};
-use openzeppelin::token::{erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait}};
 use onchain::contracts::scavenger_hunt_nft::{
     IScavengerHuntNFTDispatcher, IScavengerHuntNFTDispatcherTrait,
 };
-use onchain::interface::{Levels};
+use onchain::interface::Levels;
+use openzeppelin::token::erc1155::interface::{IERC1155Dispatcher, IERC1155DispatcherTrait};
+use snforge_std::{
+    ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
+    stop_cheat_caller_address,
+};
+use starknet::ContractAddress;
 
 // Define for testing
 const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");

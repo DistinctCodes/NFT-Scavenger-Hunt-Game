@@ -1,15 +1,14 @@
-use starknet::{ContractAddress, contract_address_const};
-
-use snforge_std::{
-    declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-    stop_cheat_caller_address,
-};
-
-use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Question, Levels};
+use onchain::contracts::scavenger_hunt::ScavengerHunt;
+use onchain::contracts::scavenger_hunt::ScavengerHunt::{InternalFunctionsTrait,};
+use onchain::interface::{IScavengerHuntDispatcher, IScavengerHuntDispatcherTrait, Levels, Question};
 use onchain::utils::hash_byte_array;
-use onchain::contracts::scavenger_hunt_nft::{
-    IScavengerHuntNFTDispatcher, IScavengerHuntNFTDispatcherTrait,
+use snforge_std::{
+    ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare, spy_events,
+    start_cheat_caller_address, stop_cheat_caller_address,
 };
+use starknet::{ContractAddress, contract_address_const};
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+
 
 fn ADMIN() -> ContractAddress {
     contract_address_const::<'ADMIN'>()
@@ -22,7 +21,7 @@ fn USER() -> ContractAddress {
 
 fn deploy_contract() -> ContractAddress {
     let contract = declare("ScavengerHunt").unwrap().contract_class();
-    let mut constructor_calldata: Array::<felt252> = array![];
+    let mut constructor_calldata: Array<felt252> = array![];
     Serde::serialize(@ADMIN(), ref constructor_calldata);
     let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
     contract_address
@@ -299,7 +298,6 @@ fn test_level_progression() {
 
     // Player actions (keep caller as player_address throughout)
     start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
 
     let player_progress = dispatcher.get_player_level(player_address);
     let player_level = player_progress.into();
@@ -337,7 +335,6 @@ fn test_no_progression_on_partial_completion() {
 
     // Player setup
     start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
 
     // Submit 2 out of 3 answers
     dispatcher.submit_answer(1, "A1");
@@ -366,7 +363,6 @@ fn test_incorrect_answer_does_not_progress() {
     stop_cheat_caller_address(contract_address);
 
     start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
 
     let result = dispatcher.submit_answer(1, "Wrong");
     assert!(!result, "Submitting an incorrect answer should return false");
@@ -391,7 +387,7 @@ fn test_max_level_does_not_progress() {
     stop_cheat_caller_address(contract_address);
 
     start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
+
     // Manually set to Master (assuming we add this function or cheat state)
     // For now, simulate by answering prior levels or modify contract
     dispatcher.submit_answer(1, "Final A1");
@@ -431,7 +427,9 @@ fn test_multiple_level_progressions() {
 
     // Player setup
     start_cheat_caller_address(contract_address, player_address);
-    dispatcher.initialize_player_progress(player_address);
+
+    let progress = dispatcher.get_player_level(player_address);
+    assert!(progress == Levels::Easy, "Should be initialized");
 
     // Initial level check
     let player_progress = dispatcher.get_player_level(player_address);
@@ -495,6 +493,7 @@ fn test_level_nft_minting() {
     // Test NFT claiming
     dispatcher.claim_level_completion_nft(Levels::Easy);
 
+
     // Verify NFT was minted
     assert!(nft.has_level_badge(USER(), Levels::Easy), "NFT not minted");
 
@@ -532,3 +531,54 @@ fn test_double_nft_minting() {
     // Attempt to claim the NFT again
     dispatcher.claim_level_completion_nft(Levels::Easy); // Should panic
 }
+
+#[test]
+fn test_initialize_player_progress() {
+    // Get contract state for testing
+    let mut state = ScavengerHunt::contract_state_for_testing();
+    let player_address = USER();
+
+    // Call the internal function directly
+    state.initialize_player_progress(player_address);
+
+    // Verify the player was initialized correctly
+    let player_progress = state.player_progress.read(player_address);
+    assert!(player_progress.is_initialized, "Player should be initialized");
+    assert!(player_progress.current_level == Levels::Easy, "Player should start at Easy level");
+    assert!(player_progress.address == player_address, "Player address should match");
+
+    // Verify level progress was initialized correctly
+    let level_progress = state.player_level_progress.read((player_address, Levels::Easy.into()));
+    assert!(level_progress.player == player_address, "Level progress player should match");
+    assert!(level_progress.level == Levels::Easy, "Level should be Easy");
+    assert!(level_progress.last_question_index == 0, "Last question index should be 0");
+    assert!(!level_progress.is_completed, "Level should not be completed");
+    assert!(level_progress.attempts == 0, "Attempts should be 0");
+    assert!(!level_progress.nft_minted, "NFT should not be minted");
+}
+
+
+fn test_set_nft_contract_address() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+    let new_nft_address = contract_address_const::<'NEW_NFT'>();
+
+    start_cheat_caller_address(contract_address, ADMIN());
+    dispatcher.set_nft_contract_address(new_nft_address);
+    stop_cheat_caller_address(contract_address);
+
+    let stored_address = dispatcher.get_nft_contract_address();
+    assert!(stored_address == new_nft_address, "wrong_nft_address");
+}
+
+#[test]
+#[should_panic(expected: 'Caller is missing role')]
+fn test_set_nft_contract_address_should_panic_with_missing_role() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+    let new_nft_address = contract_address_const::<'NEW_NFT'>();
+
+    dispatcher.set_nft_contract_address(new_nft_address);
+}
+
+
