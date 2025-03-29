@@ -4,6 +4,9 @@ pub mod ScavengerHunt {
     use core::array::ArrayTrait;
     use core::felt252;
     use onchain::interface::{IScavengerHunt, LevelProgress, Levels, PlayerProgress, Question};
+    use onchain::contracts::scavenger_hunt_nft::{
+        IScavengerHuntNFTDispatcher, IScavengerHuntNFTDispatcherTrait
+    };
     use onchain::utils::hash_byte_array;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
@@ -60,6 +63,7 @@ pub mod ScavengerHunt {
         LevelCompleted: LevelCompleted,
         AnswerSubmitted: AnswerSubmitted,
         NFTContractUpdated: NFTContractUpdated,
+        LevelBadgeMinted: LevelBadgeMinted,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -102,11 +106,17 @@ pub mod ScavengerHunt {
         pub new_address: ContractAddress,
     }
 
+    #[derive(Drop, starknet::Event)]
+    pub struct LevelBadgeMinted {
+        pub player: ContractAddress,
+        pub level: Levels,
+    }
 
     #[constructor]
-    fn constructor(ref self: ContractState, admin: ContractAddress) {
+    fn constructor(ref self: ContractState, admin: ContractAddress, nft_contract: ContractAddress) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+        self.nft_contract_address.write(nft_contract);
     }
 
     #[abi(embed_v0)]
@@ -121,14 +131,10 @@ pub mod ScavengerHunt {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
 
-            let question_id = self.question_count.read()
-                + 1; // Increment the question count and use it as the ID
+            let question_id = self.question_count.read() + 1;
+            self.question_count.write(question_id);
 
-            self.question_count.write(question_id); // Update the question count
-
-            // Hash the answer ByteArray
-            let hashed_answer = hash_byte_array(answer.clone()); // Clone to avoid ownership issues
-
+            let hashed_answer = hash_byte_array(answer.clone());
             let new_question = Question { question_id, question, hashed_answer, level, hint };
 
             // Store the new question in the `questions` map
@@ -178,12 +184,9 @@ pub mod ScavengerHunt {
             let question_data = self.questions.read(question_id);
             assert!(question_data.question_id == question_id, "Question not found");
 
-            // Get and update level progress
             let mut level_progress = self
                 .player_level_progress
                 .read((caller, question_data.level.into()));
-
-            // Hash the answer
             let hashed_answer = hash_byte_array(answer);
             let is_correct = question_data.hashed_answer == hashed_answer;
 
@@ -210,26 +213,22 @@ pub mod ScavengerHunt {
                                 address: caller, current_level: next_level, is_initialized: true,
                             },
                         );
-
-                    // Emit level completion event
                     self
                         .emit(
                             LevelCompleted {
-                                player: caller, completed_level: question_data.level, next_level,
-                            },
+                                player: caller, completed_level: question_data.level, next_level
+                            }
                         );
                 }
             }
 
             // Update storage for attempts
             self.player_level_progress.write((caller, question_data.level.into()), level_progress);
-
-            // Emit answer submission event
             self
                 .emit(
                     AnswerSubmitted {
-                        player: caller, question_id, level: question_data.level, is_correct,
-                    },
+                        player: caller, question_id, level: question_data.level, is_correct
+                    }
                 );
 
             is_correct
@@ -254,7 +253,7 @@ pub mod ScavengerHunt {
             question_id: u64,
             question: ByteArray,
             answer: ByteArray,
-            level: Levels, // This would be updated in-time
+            level: Levels,
             hint: ByteArray,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -263,9 +262,7 @@ pub mod ScavengerHunt {
             let mut existing_question = self.questions.read(question_id);
             assert!(existing_question.question_id == question_id, "Question does not exist");
 
-            // Hash the answer ByteArray
-            let hashed_answer = hash_byte_array(answer.clone()); // Clone to avoid ownership issues
-            // Copying the original level to avoid partial moves
+            let hashed_answer = hash_byte_array(answer.clone());
             let original_level = existing_question.level;
 
             // Update the question details
@@ -292,9 +289,24 @@ pub mod ScavengerHunt {
 
         fn get_player_level(self: @ContractState, player: ContractAddress) -> Levels {
             let player_progress = self.player_progress.read(player);
-            let player_level = player_progress.current_level;
+            player_progress.current_level
+        }
 
-            player_level
+        fn claim_level_completion_nft(ref self: ContractState, level: Levels) {
+            let caller = get_caller_address();
+            let mut level_progress = self.player_level_progress.read((caller, level.into()));
+
+            assert!(level_progress.is_completed, "Level not completed");
+            assert!(!level_progress.nft_minted, "NFT already minted for this level");
+
+            let nft_contract = self.nft_contract_address.read();
+            IScavengerHuntNFTDispatcher { contract_address: nft_contract }
+                .mint_level_badge(caller, level);
+
+            level_progress.nft_minted = true;
+            self.player_level_progress.write((caller, level.into()), level_progress);
+
+            self.emit(LevelBadgeMinted { player: caller, level });
         }
 
         fn set_nft_contract_address(ref self: ContractState, new_address: ContractAddress) {
@@ -307,6 +319,12 @@ pub mod ScavengerHunt {
         fn get_nft_contract_address(self: @ContractState) -> ContractAddress {
             self.nft_contract_address.read()
         }
+
+        fn get_player_level_progress(
+            self: @ContractState, player: ContractAddress, level: Levels
+        ) -> LevelProgress {
+            self.player_level_progress.read((player, level.into()))
+        }
     }
 
     #[generate_trait]
@@ -316,7 +334,6 @@ pub mod ScavengerHunt {
 
             assert!(!player_progress.is_initialized, "Player already initialized");
 
-            // initialize player progess
             self
                 .player_progress
                 .write(
@@ -326,7 +343,6 @@ pub mod ScavengerHunt {
                     },
                 );
 
-            // set player current level
             self
                 .player_level_progress
                 .write(
@@ -345,3 +361,4 @@ pub mod ScavengerHunt {
         }
     }
 }
+
