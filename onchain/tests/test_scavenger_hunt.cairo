@@ -60,9 +60,9 @@ fn test_add_and_get_question() {
 
     // Define test data
     let level = Levels::Easy;
-    let question: ByteArray = "What is the capital of France?"; // ByteArray
-    let answer: ByteArray = "Paris"; // ByteArray
-    let hint: ByteArray = "It starts with 'P'"; // ByteArray
+    let question = "What is the capital of France?"; // ByteArray
+    let answer = "Paris"; // ByteArray
+    let hint = "It starts with 'P'"; // ByteArray
 
     let hashed_answer = hash_byte_array(answer.clone());
     // Add a question
@@ -111,9 +111,9 @@ fn test_add_and_get_question_should_panic_with_missing_role() {
 
     // Define test data
     let level = Levels::Easy;
-    let question: ByteArray = "What is the capital of France?"; // ByteArray
-    let answer: ByteArray = "Paris"; // ByteArray
-    let hint: ByteArray = "It starts with 'P'"; // ByteArray
+    let question = "What is the capital of France?"; // ByteArray
+    let answer = "Paris"; // ByteArray
+    let hint = "It starts with 'P'"; // ByteArray
 
     // Add a question
     dispatcher.add_question(level, question.clone(), answer.clone(), hint.clone());
@@ -129,9 +129,9 @@ fn test_request_hint() {
 
     // Define test data
     let level = Levels::Easy;
-    let question: ByteArray = "What is the capital of France?"; // ByteArray
-    let answer: ByteArray = "Paris"; // ByteArray
-    let hint: ByteArray = "It starts with 'P'"; // ByteArray
+    let question = "What is the capital of France?"; // ByteArray
+    let answer = "Paris"; // ByteArray
+    let hint = "It starts with 'P'"; // ByteArray
 
     // Add a question
     start_cheat_caller_address(contract_address, ADMIN());
@@ -153,9 +153,9 @@ fn test_get_question_in_level() {
     let dispatcher = IScavengerHuntDispatcher { contract_address };
 
     let level = Levels::Easy;
-    let question: ByteArray = "What is the capital of France?";
-    let answer:ByteArray = "Paris";
-    let hint: ByteArray = "It starts with 'P'";
+    let question = "What is the capital of France?";
+    let answer = "Paris";
+    let hint = "It starts with 'P'";
     let index = 0;
 
     start_cheat_caller_address(contract_address, ADMIN());
@@ -180,9 +180,9 @@ fn test_update_question() {
 
     // Define initial test data
     let level = Levels::Easy;
-    let question: ByteArray = "What is the capital of France?";
-    let answer: ByteArray = "Paris";
-    let hint: ByteArray = "It starts with 'P'";
+    let question = "What is the capital of France?";
+    let answer = "Paris";
+    let hint = "It starts with 'P'";
 
     // Add a question
     start_cheat_caller_address(contract_address, ADMIN());
@@ -191,9 +191,9 @@ fn test_update_question() {
     stop_cheat_caller_address(contract_address);
 
     // Define updated test data
-    let updated_question: ByteArray = "What is the capital of Germany?";
-    let updated_answer: ByteArray = "Berlin";
-    let updated_hint: ByteArray = "It starts with 'B'";
+    let updated_question = "What is the capital of Germany?";
+    let updated_answer = "Berlin";
+    let updated_hint = "It starts with 'B'";
 
     let hashed_updated_answer = hash_byte_array(updated_answer.clone());
 
@@ -237,9 +237,9 @@ fn test_update_question_should_panic_with_missing_role() {
 
     // Define initial test data
     let level = Levels::Easy;
-    let question: ByteArray = "What is the capital of France?";
-    let answer: ByteArray = "Paris";
-    let hint: ByteArray = "It starts with 'P'";
+    let question = "What is the capital of France?";
+    let answer = "Paris";
+    let hint = "It starts with 'P'";
 
     // Add a question
     start_cheat_caller_address(contract_address, ADMIN());
@@ -248,9 +248,9 @@ fn test_update_question_should_panic_with_missing_role() {
     stop_cheat_caller_address(contract_address);
 
     // Define updated test data
-    let updated_question: ByteArray = "What is the capital of Germany?";
-    let updated_answer: ByteArray = "Berlin";
-    let updated_hint: ByteArray = "It starts with 'B'";
+    let updated_question = "What is the capital of Germany?";
+    let updated_answer = "Berlin";
+    let updated_hint = "It starts with 'B'";
 
     // Attempt to update the question without admin role
     dispatcher
@@ -267,10 +267,10 @@ fn test_update_question_should_panic_if_question_does_not_exist() {
 
     // Define test data for updating a non-existent question
     let invalid_question_id = 1; // This question ID does not exist yet
-    let question: ByteArray = "What is the capital of France?";
-    let answer: ByteArray = "Paris";
+    let question = "What is the capital of France?";
+    let answer = "Paris";
     let level = Levels::Easy;
-    let hint: ByteArray = "It starts with 'P'";
+    let hint = "It starts with 'P'";
 
     // Attempt to update a non-existent question
     start_cheat_caller_address(contract_address, ADMIN());
@@ -285,9 +285,9 @@ fn test_level_progression() {
     let player_address = USER();
 
     let level = Levels::Easy;
-    let question: ByteArray = "Who is the pirate king?";
-    let answer: ByteArray = "Gol d Roger";
-    let hint: ByteArray = "It starts with 'G'";
+    let question = "Who is the pirate king?";
+    let answer = "Gol d Roger";
+    let hint = "It starts with 'G'";
 
     // Admin setup
     start_cheat_caller_address(contract_address, ADMIN());
@@ -473,64 +473,6 @@ fn test_multiple_level_progressions() {
 
     stop_cheat_caller_address(contract_address);
 }
-#[test]
-fn test_level_nft_minting() {
-    let contract_address = deploy_contract();
-    let dispatcher = IScavengerHuntDispatcher { contract_address };
-    let nft = IScavengerHuntNFTDispatcher { contract_address };
-
-    // Setup test level
-    start_cheat_caller_address(contract_address, ADMIN());
-    dispatcher.set_question_per_level(1);
-    dispatcher.add_question(Levels::Easy, "Q?", "A", "H");
-    stop_cheat_caller_address(contract_address);
-
-    // Player completes level
-    start_cheat_caller_address(contract_address, USER());
-    dispatcher.initialize_player_progress(USER());
-    dispatcher.submit_answer(1, "A");
-
-    // Test NFT claiming
-    dispatcher.claim_level_completion_nft(Levels::Easy);
-
-
-    // Verify NFT was minted
-    assert!(nft.has_level_badge(USER(), Levels::Easy), "NFT not minted");
-
-    // Check that the player's progress reflects the minted NFT
-    let progress = dispatcher.get_player_level_progress(USER(), Levels::Easy);
-    assert!(progress.nft_minted, "NFT mint flag not set");
-
-    stop_cheat_caller_address(contract_address);
-}
-
-#[test]
-#[should_panic(expected: "Level not completed")]
-fn test_nft_minting_before_completion() {
-    let contract_address = deploy_contract();
-    let dispatcher = IScavengerHuntDispatcher { contract_address };
-
-    // Attempt to claim NFT without completing the level
-    start_cheat_caller_address(contract_address, USER());
-    dispatcher.initialize_player_progress(USER());
-    dispatcher.claim_level_completion_nft(Levels::Easy); // Should panic
-}
-
-#[test]
-#[should_panic(expected: "NFT already minted")]
-fn test_double_nft_minting() {
-    let contract_address = deploy_contract();
-    let dispatcher = IScavengerHuntDispatcher { contract_address };
-
-    // Complete level and claim once
-    start_cheat_caller_address(contract_address, USER());
-    dispatcher.initialize_player_progress(USER());
-    dispatcher.submit_answer(1, "A");
-    dispatcher.claim_level_completion_nft(Levels::Easy);
-
-    // Attempt to claim the NFT again
-    dispatcher.claim_level_completion_nft(Levels::Easy); // Should panic
-}
 
 #[test]
 fn test_initialize_player_progress() {
@@ -643,7 +585,7 @@ fn test_cannot_claim_nft_twice() {
 fn test_nft_minting_emits_event() {
     let contract_address = deploy_contract();
     let dispatcher = IScavengerHuntDispatcher { contract_address };
-    
+
     // Start spying before the actions that emit events
     let mut spy = spy_events();
 
@@ -660,12 +602,16 @@ fn test_nft_minting_emits_event() {
     stop_cheat_caller_address(contract_address);
 
     // Assert the event was emitted
-    spy.assert_emitted(@array![
-        (contract_address, ScavengerHunt::Event::LevelBadgeMinted(ScavengerHunt::LevelBadgeMinted {
-            player: USER(),
-            level: Levels::Hard,
-        }))
-    ]);
+    spy
+        .assert_emitted(
+            @array![
+                (
+                    contract_address,
+                    ScavengerHunt::Event::LevelBadgeMinted(
+                        ScavengerHunt::LevelBadgeMinted { player: USER(), level: Levels::Hard, }
+                    )
+                )
+            ]
+        );
 }
-
 
