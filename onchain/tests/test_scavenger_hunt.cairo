@@ -286,7 +286,7 @@ fn test_level_progression() {
 
     let level = Levels::Easy;
     let question = "Who is the pirate king?";
-    let answer = "Gol d Roger";
+    let answer = "Gold Roger";
     let hint = "It starts with 'G'";
 
     // Admin setup
@@ -473,5 +473,27 @@ fn test_multiple_level_progressions() {
 
     stop_cheat_caller_address(contract_address);
 }
+
+//Test for validation of add_question
+
+#[test]
+#[should_panic(expected: 'empty inputs')]
+fn test_add_question() {
+    let contract_address = deploy_contract();
+    let dispatcher = IScavengerHuntDispatcher { contract_address };
+
+    // Define test data
+    let level = Levels::Easy;
+    let question =""; // ByteArray
+    let answer = ""; // ByteArray
+    let hint = ""; // ByteArray
+
+
+};
+
+
+
+
+
 
 
