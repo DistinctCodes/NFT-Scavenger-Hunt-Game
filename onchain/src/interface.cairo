@@ -15,7 +15,7 @@ pub trait IScavengerHunt<TContractState> {
     fn submit_answer(ref self: TContractState, question_id: u64, answer: ByteArray) -> bool;
     fn request_hint(
         self: @TContractState, question_id: u64,
-    ) -> ByteArray; // request hint for a question
+    ) -> ByteArray;
     fn get_question_in_level(self: @TContractState, level: Levels, index: u8) -> ByteArray;
     fn update_question(
         ref self: TContractState,
@@ -67,12 +67,13 @@ pub struct PlayerProgress {
 pub struct LevelProgress {
     pub player: ContractAddress,
     pub level: Levels,
-    pub last_question_index: u8, // Index of the last correctly answered question in a level
+    pub last_question_index: u8,
     pub is_completed: bool,
     pub attempts: u32,
-    pub nft_minted: bool,
+    pub nft_minted: bool,  // Added NFT minting status flag
 }
 
+// Conversion traits remain unchanged
 impl LevelsIntoFelt252 of Into<Levels, felt252> {
     fn into(self: Levels) -> felt252 {
         match self {
@@ -120,7 +121,7 @@ impl TokenIDsTryIntoLevels of TryInto<u256, Levels> {
             Option::Some(Levels::Medium)
         } else if self == 3 {
             Option::Some(Levels::Hard)
-        } else if self == 'MASTER' {
+        } else if self == 4 {
             Option::Some(Levels::Master)
         } else {
             Option::None
