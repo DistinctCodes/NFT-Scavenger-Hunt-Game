@@ -522,4 +522,11 @@ fn test_set_nft_contract_address_should_panic_with_missing_role() {
 
     dispatcher.set_nft_contract_address(new_nft_address);
 }
+# [test]
+#[should_panic (expected: 'input can not be empty')]
+
+fn test add_question_validation (){
+
+    
+}
 
