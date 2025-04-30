@@ -25,7 +25,7 @@ export class ScoresService {
   async getLeaderboard(page: number = 1, limit: number = 10) {
     const [users, total] = await this.userRepository.findAndCount({
       relations: ['scores'],
-      order: { score: 'DESC', updatedAt: 'ASC' },
+      order: { scores: 'DESC', updatedAt: 'ASC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -42,14 +42,14 @@ export class ScoresService {
   async createScore(createScoreDto: CreateScoreDto) {
     const { username, puzzleId, score } = createScoreDto;
     
-    // Find or create user
-    const user = await this.userService.findOrCreateUser(username);
+    // Find user
+    const user = await this.userService.FindByUsername(username);
     if (!user) {
       throw new NotFoundException(`User ${username} not found`);
     }
 
     // Find puzzle
-    const puzzle = await this.puzzleService.findOne(puzzleId);
+    const puzzle = await this.puzzleService.getAPuzzle(puzzleId);
     if (!puzzle) {
       throw new NotFoundException(`Puzzle ${puzzleId} not found`);
     }
@@ -64,7 +64,7 @@ export class ScoresService {
     const savedScore = await this.scoresRepository.save(scoreEntry);
 
     // Notify connected clients about the new score
-    this.leaderboardGateway.handleScoreUpdate({
+    this.leaderboardGateway.sendLeaderboardUpdate({
       username: user.username,
       score: savedScore.score,
       puzzleId: puzzle.id

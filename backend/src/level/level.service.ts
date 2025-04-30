@@ -5,7 +5,7 @@ import { CreateLevelDto } from './dto/create-level.dto';
 import { UpdateLevelDto } from './dto/update-level.dto';
 import { Level } from './entities/level.entity';
 import { PuzzlesService } from 'src/puzzles/puzzles.service';
-
+import { LevelEnum } from 'src/enums/LevelEnum';
 
 @Injectable()
 export class LevelService {
@@ -30,7 +30,7 @@ export class LevelService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const level = await this.levelRepository.findOne({
       where: { id },
       relations: ['puzzles'],
@@ -43,14 +43,39 @@ export class LevelService {
     return level;
   }
 
-  async update(id: number, updateLevelDto: UpdateLevelDto) {
+  async update(id: string, updateLevelDto: UpdateLevelDto) {
     const level = await this.findOne(id);
     Object.assign(level, updateLevelDto);
     return await this.levelRepository.save(level);
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const level = await this.findOne(id);
     return await this.levelRepository.remove(level);
+  }
+
+  async getTotalLevels(): Promise<number> {
+    const levels = await this.levelRepository.find();
+    return levels.length;
+  }
+
+  async incrementCount(levelEnum: LevelEnum) {
+    const level = await this.levelRepository.findOne({ where: { level: levelEnum } });
+    if (!level) {
+      throw new NotFoundException(`Level ${levelEnum} not found`);
+    }
+
+    level.count += 1;
+    await this.levelRepository.save(level);
+  }
+
+  async decrementCount(levelEnum: LevelEnum) {
+    const level = await this.levelRepository.findOne({ where: { level: levelEnum } });
+    if (!level) {
+      throw new NotFoundException(`Level ${levelEnum} not found`);
+    }
+
+    level.count = Math.max(0, level.count - 1);
+    await this.levelRepository.save(level);
   }
 }

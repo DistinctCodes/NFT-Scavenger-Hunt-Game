@@ -9,13 +9,18 @@ import {
   Request,
   Query,
   BadRequestException,
-  UseGuards
+  UseGuards,
+  ParseUUIDPipe
 } from '@nestjs/common';
 import { UserProgressDto } from './dto/user-progress.dto';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { Role } from 'src/auth/enums/roles.enum';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
+import { UserProgress } from './user-progress.entity';
+import { LevelProgressDto } from './dto';
 
+@ApiTags('user-progress')
 @Controller('user-progress')
 export class UserProgressController {
   constructor(private readonly userProgressService: UserProgressService) {}
@@ -49,42 +54,61 @@ export class UserProgressController {
   @Get('user-score')
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Get total user score across all completed puzzles' })
+  @ApiQuery({ name: 'userId', type: Number, required: true })
+  @ApiResponse({ status: 200, description: 'Returns the total user score' })
   async getUserScore(
-    @Query('userId') userId: number,
-    @Query('puzzleId') puzzleId: number,
+    @Query('userId', ParseIntPipe) userId: number
   ): Promise<number> {
-    if (!puzzleId) {
-      throw new BadRequestException('Puzzle ID is required');
-    }
     return this.userProgressService.getUserScore(userId);
   }
 
   @Post('puzzle-completed')
-  async puzzleCompleted(@Request() req, @Body() body: { puzzleId: number }) {
+  @ApiOperation({ summary: 'Mark a puzzle as completed' })
+  @ApiResponse({ status: 200, description: 'Puzzle marked as completed', type: UserProgress })
+  async puzzleCompleted(
+    @Request() req,
+    @Body() body: { puzzleId: number }
+  ): Promise<UserProgress> {
     return this.userProgressService.puzzleCompleted(req.user.id, body.puzzleId);
   }
 
   @Post('level-completed')
-  async levelCompleted(@Request() req, @Body() body: { levelId: number }) {
+  @ApiOperation({ summary: 'Mark a level as completed' })
+  @ApiResponse({ status: 200, description: 'Level marked as completed', type: UserProgress })
+  async levelCompleted(
+    @Request() req,
+    @Body() body: { levelId: string }
+  ): Promise<UserProgress> {
     return this.userProgressService.levelCompleted(req.user.id, body.levelId);
+  }
 
   @Get(':userId/level/:levelId')
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Get level progress for a user' })
+  @ApiParam({ name: 'userId', type: Number })
+  @ApiParam({ name: 'levelId', type: String })
+  @ApiResponse({ status: 200, description: 'Returns the level progress', type: LevelProgressDto })
   async getLevelProgress(
-    @Query('userId', ParseIntPipe) userId: number,
-    @Query('levelId', ParseIntPipe) levelId: string,
-  ) {
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('levelId', ParseUUIDPipe) levelId: string
+  ): Promise<LevelProgressDto> {
     return this.userProgressService.getLevelProgress(userId, levelId);
   }
 
   @Get(':userId/level/:levelId/solved')
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
+  @ApiOperation({ summary: 'Get number of solved puzzles in a level' })
+  @ApiParam({ name: 'userId', type: Number })
+  @ApiParam({ name: 'levelId', type: String })
+  @ApiResponse({ status: 200, description: 'Returns the number of solved puzzles', type: Number })
   async getSolvedPuzzlesInLevel(
-    @Query('userId', ParseIntPipe) userId: number,
-    @Query('levelId', ParseIntPipe) levelId: string,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('levelId', ParseUUIDPipe) levelId: string
   ): Promise<number> {
-    return this.userProgressService.getSolvedPuzzlesInLevel(userId, levelId);
+    const { solved } = await this.userProgressService.getLevelProgress(userId, levelId);
+    return solved;
   }
 }

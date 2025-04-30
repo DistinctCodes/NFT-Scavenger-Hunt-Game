@@ -1,21 +1,9 @@
-<<<<<<< HEAD
-/* eslint-disable prettier/prettier */
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserProvider } from './providers/create-user-provider.provider';
-import { CreateUserDto } from './dtos/create-user-dto.dto';
-import { FindByUsername } from './providers/find-by-username.provider';
-import { AuthService } from '../auth/auth.service';
 import { InjectRepository } from '@nestjs/typeorm';
-=======
->>>>>>> b40c5d58a38f2cff0d7a4d88c0625c5f83073de4
 import { Repository } from 'typeorm';
 import { User } from './users.entity';
 import { AuthService } from '../auth/auth.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user-dto.dto';
-/* eslint-disable prettier/prettier */
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { FindByUsername } from './providers/find-by-username.provider';
 import { Leaderboard } from 'src/leaderboard/entities/leaderboard.entity';
 import { CreateUserProvider } from './providers/create-user-provider.provider';

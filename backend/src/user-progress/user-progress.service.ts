@@ -1,21 +1,14 @@
-import { Injectable, NotFoundException,  BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import type { Repository } from 'typeorm';
-import type { Hints } from '../hints/hints.entity';
-import { UserProgress } from './user-progress.entity';
-import { UsersService } from 'src/users/users.service';
-import { PuzzlesService } from 'src/puzzles/puzzles.service';
-import { HintsService } from 'src/hints/hints.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserProgress } from './user-progress.entity';
-import { UserProgressDto } from './dto/user-progress.dto';
-import { LevelProgressService } from './level-progress.service';
 import { UsersService } from 'src/users/users.service';
 import { PuzzlesService } from 'src/puzzles/puzzles.service';
 import { HintsService } from 'src/hints/hints.service';
+import { LevelService } from 'src/level/level.service';
 import { Puzzles } from 'src/puzzles/puzzles.entity';
 import { Level } from 'src/level/entities/level.entity';
+import { LevelProgressDto } from './dto/level-progress.dto';
 
 @Injectable()
 export class UserProgressService {
@@ -24,25 +17,32 @@ export class UserProgressService {
     private userProgressRepository: Repository<UserProgress>,
     @InjectRepository(Level)
     private readonly levelRepository: Repository<Level>,
-    // Dependency injection for user service
-    private readonly userservice: UsersService,
-
-    private readonly puzzleservice: PuzzlesService,
-
-    private readonly hintservice: HintsService,
+    private readonly userService: UsersService,
+    private readonly puzzleService: PuzzlesService,
+    private readonly hintService: HintsService,
+    private readonly levelService: LevelService
   ) {}
 
   async getUserProgress(userId: number): Promise<UserProgress[]> {
-    const progress = await this.userProgressRepository.find({
+    const userProgress = await this.userProgressRepository.find({
       where: { user: { id: userId } },
       relations: ['puzzles', 'hints'],
     });
 
-    if (!progress.length) {
+    if (!userProgress.length) {
       throw new NotFoundException(`No progress found for user ${userId}`);
     }
 
-    return progress;
+    return userProgress;
+  }
+
+  async getUserScore(userId: number): Promise<number> {
+    const userProgress = await this.userProgressRepository.find({
+      where: { user: { id: userId }, completed: true },
+      relations: ['puzzles'],
+    });
+
+    return userProgress.reduce((total, p) => total + (p.puzzles?.pointValue || 0), 0);
   }
 
   async updateProgress(
@@ -51,218 +51,139 @@ export class UserProgressService {
     hintId: number | null,
     completed: boolean,
   ): Promise<UserProgress> {
-    let progress = await this.userProgressRepository.findOne({
-<<<<<<< HEAD
-      where: { user: { id: userId } },
-      relations: ['user', 'puzzles', 'hints']
-    })
-
-    if (!progress) {
-      // Get the user and puzzle entities first
-      const user = await this.userservice.findById(userId)
-      const puzzle = await this.puzzleservice.getAPuzzle(puzzleId)
-      
-      if (!user || !puzzle) {
-        throw new Error('User or puzzle not found')
-      }
-
-      progress = this.userProgressRepository.create()
-      progress.user = user
-      progress.puzzles = puzzle
-=======
-      where: { user: { id: userId }, puzzles: { id: puzzleId } },
-    });
-
-    if (!progress) {
-      progress = this.userProgressRepository.create({
-        user: { id: userId },
-        puzzles: { id: puzzleId },
-      });
-    levelId: string,
-    hintId: number | null = null,
-  ): Promise<{
-    userProgress: UserProgress;
-    levelProgress: { progress: number; solved: number; total: number };
-  }> {
-    // Validate inputs
-    if (!userId || !puzzleId || !levelId) {
-      throw new BadRequestException('Missing required parameters');
->>>>>>> b40c5d58a38f2cff0d7a4d88c0625c5f83073de4
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    // Verify puzzle exists and belongs to the specified level
-    const puzzle = await this.puzzlesService.getAPuzzle(puzzleId);
+    const puzzle = await this.puzzleService.getAPuzzle(puzzleId);
     if (!puzzle) {
       throw new NotFoundException(`Puzzle with ID ${puzzleId} not found`);
     }
-    if (puzzle.level.id !== levelId) {
-      throw new BadRequestException(
-        `Puzzle ${puzzleId} does not belong to level ${levelId}`,
-      );
-    }
 
-    // 1. Update puzzle completion status
-    let progress = await this.userProgressRepository.findOne({
+    let userProgress = await this.userProgressRepository.findOne({
       where: { user: { id: userId }, puzzles: { id: puzzleId } },
-      relations: ['puzzles', 'hints', 'user'],
+      relations: ['user', 'puzzles', 'hints'],
     });
 
-    if (!progress) {
-      const newProgress = new UserProgress();
-      newProgress.user = { id: userId } as any;
-      newProgress.puzzles = [{ id: puzzleId } as Puzzles];
-      newProgress.completed = true;
-      progress = newProgress;
-    } else {
-      progress.completed = true;
+    if (!userProgress) {
+      userProgress = this.userProgressRepository.create({
+        user,
+        puzzles: puzzle,
+        completed: false,
+        hintsUsed: 0,
+      });
     }
 
-    // 2. Update hint usage if a hint was used
     if (hintId) {
-<<<<<<< HEAD
-      const hint = await this.hintservice.findById(hintId.toString())
-      if (!hint) {
-        throw new Error('Hint not found')
-      }
-      progress.hints = hint
-      progress.hintsUsed += 1
-=======
-      progress.hints = { id: hintId } as Hints;
-      progress.hintsUsed += 1;
-      // Verify hint exists and belongs to the puzzle
-      const hint = await this.hintsService.findById(String(hintId));
+      const hint = await this.hintService.findById(hintId.toString());
       if (!hint) {
         throw new NotFoundException(`Hint with ID ${hintId} not found`);
       }
-      if (hint.puzzles.id !== puzzleId) {
-        throw new BadRequestException(
-          `Hint ${hintId} does not belong to puzzle ${puzzleId}`,
-        );
-      }
-
-      progress.hints = hint;
-      progress.hintsUsed += 1;
->>>>>>> b40c5d58a38f2cff0d7a4d88c0625c5f83073de4
+      userProgress.hints = hint;
+      userProgress.hintsUsed += 1;
     }
 
-    progress.lastUpdated = new Date();
+    userProgress.completed = completed;
+    userProgress.lastUpdated = new Date();
 
-    try {
-      // 3. Save the progress
-      const savedProgress = await this.userProgressRepository.save(progress);
-
-      // 4. Calculate level completion progress
-      const levelProgress =
-        await this.levelProgressService.calculateLevelCompletion(
-          userId,
-          levelId,
-        );
-
-      // 5. Check if level is completed (100% progress)
-      if (levelProgress.progress === 100) {
-        await this.handleLevelCompletion(userId, levelId);
-      }
-
-      return {
-        userProgress: savedProgress,
-        levelProgress,
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        `Failed to update progress: ${error.message}`,
-      );
-    }
-  }
-
-  private async handleLevelCompletion(
-    userId: number,
-    levelId: string,
-  ): Promise<void> {
-    try {
-      // Get user's current progress
-      const userProgress = await this.getUserProgress(userId);
-      const completedPuzzles = userProgress.filter((p) => p.completed).length;
-      const hintsUsed = userProgress.reduce(
-        (total, p) => total + p.hintsUsed,
-        0,
-      );
-
-    progress.completed = completed;
-    progress.lastUpdated = new Date();
-
-    return this.userProgressRepository.save(progress);
-  }
-
-<<<<<<< HEAD
-  async getUserScore(userId: number, puzzleId: number): Promise<number> {
-    const progress = await this.userProgressRepository.findOne({
-      where: { 
-        user: { id: userId },
-        puzzles: { id: puzzleId },
-        completed: true 
-      },
-      relations: ["puzzles"],
-    })
-
-    return progress?.puzzles?.pointValue || 0;
-=======
-  async getUserScore(userId: number): Promise<number> {
-    const progress = await this.userProgressRepository.find({
-      where: { user: { id: userId }, completed: true },
-      relations: ['puzzle'],
-    });
-
-    return progress.reduce((total, p) => total + p.puzzles.pointValue, 0);
+    return this.userProgressRepository.save(userProgress);
   }
 
   async puzzleCompleted(
     userId: number,
     puzzleId: number,
   ): Promise<UserProgress> {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
 
-    const progress = await this.updateProgress(userId, puzzleId, null, true);
-    
-    await this.recalcOverallProgress(progress);
-    return this.userProgressRepository.save(progress);
-  }
+    const puzzle = await this.puzzleService.getAPuzzle(puzzleId);
+    if (!puzzle) {
+      throw new NotFoundException(`Puzzle with ID ${puzzleId} not found`);
+    }
 
-  async levelCompleted(userId: number, levelId: number): Promise<UserProgress> {
-  
-    let progress = await this.userProgressRepository.findOne({
-      where: { user: { id: userId } },
+    let userProgress = await this.userProgressRepository.findOne({
+      where: { user: { id: userId }, puzzles: { id: puzzleId } },
+      relations: ['user', 'puzzles'],
     });
-    if (!progress) {
-      progress = this.userProgressRepository.create({ user: { id: userId } });
-    }
-    if (!progress.completedLevels) {
-      progress.completedLevels = [];
-    }
-    if (!progress.completedLevels.includes(levelId)) {
-      progress.completedLevels.push(levelId);
+
+    if (!userProgress) {
+      userProgress = this.userProgressRepository.create({
+        user,
+        puzzles: puzzle,
+        completed: true,
+        lastUpdated: new Date(),
+      });
+    } else {
+      userProgress.completed = true;
+      userProgress.lastUpdated = new Date();
     }
 
-    await this.recalcOverallProgress(progress);
-    progress.lastUpdated = new Date();
-    return this.userProgressRepository.save(progress);
+    return this.userProgressRepository.save(userProgress);
   }
 
-  private async recalcOverallProgress(progress: UserProgress): Promise<void> {
-    const totalPuzzles = await this.puzzleservice.getTotalPuzzles();
-    const totalLevels = await this.puzzleservice.getTotalLevels();
+  async levelCompleted(userId: number, levelId: string): Promise<UserProgress> {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
 
-    const puzzleProgress = progress.completed ? 100 : 0;
+    const level = await this.levelRepository.findOne({ where: { id: levelId } });
+    if (!level) {
+      throw new NotFoundException(`Level with ID ${levelId} not found`);
+    }
 
-    const levelProgress =
-      totalLevels && progress.completedLevels
-        ? (progress.completedLevels.length / totalLevels) * 100
-        : 0;
+    let userProgress = await this.userProgressRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user', 'completedLevels'],
+    });
 
-    
+    if (!userProgress) {
+      userProgress = this.userProgressRepository.create({
+        user,
+        completedLevels: [level],
+        lastUpdated: new Date(),
+      });
+    } else {
+      const existingLevel = userProgress.completedLevels.find(l => l.id === levelId);
+      if (!existingLevel) {
+        userProgress.completedLevels.push(level);
+        userProgress.lastUpdated = new Date();
+      }
+    }
 
-    progress.progressPercentage = Math.round(
-      (puzzleProgress + levelProgress) / 2,
+    return this.userProgressRepository.save(userProgress);
+  }
 
-    ); 
->>>>>>> b40c5d58a38f2cff0d7a4d88c0625c5f83073de4
+  async getLevelProgress(userId: number, levelId: string): Promise<LevelProgressDto> {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    const level = await this.levelRepository.findOne({
+      where: { id: levelId },
+      relations: ['puzzles'],
+    });
+    if (!level) {
+      throw new NotFoundException(`Level with ID ${levelId} not found`);
+    }
+
+    const puzzleIds = level.puzzles.map(p => p.id);
+    const userProgress = await this.userProgressRepository.find({
+      where: { user: { id: userId }, completed: true },
+      relations: ['puzzles'],
+    });
+
+    const solvedPuzzles = userProgress.filter(p => p.puzzles && puzzleIds.includes(p.puzzles.id)).length;
+    const totalPuzzles = level.puzzles.length;
+
+    return {
+      progress: totalPuzzles > 0 ? (solvedPuzzles / totalPuzzles) * 100 : 0,
+      solved: solvedPuzzles,
+      total: totalPuzzles,
+    };
   }
 }
