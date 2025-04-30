@@ -1,5 +1,6 @@
-import { IsNotEmpty, IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsBoolean, IsOptional, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { LevelEnum } from 'src/enums/LevelEnum';
 
 export class CreateLevelDto {
   @ApiProperty({ description: 'The name of the level' })
@@ -12,10 +13,10 @@ export class CreateLevelDto {
   @IsNotEmpty()
   description: string;
 
-  @ApiProperty({ description: 'The difficulty of the level' })
-  @IsString()
+  @ApiProperty({ description: 'The level type', enum: LevelEnum })
+  @IsEnum(LevelEnum)
   @IsNotEmpty()
-  difficulty: string;
+  level: LevelEnum;
 
   @ApiProperty({ description: 'The required score to unlock this level' })
   @IsNumber()

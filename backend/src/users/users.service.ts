@@ -1,11 +1,9 @@
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './users.entity';
 import { AuthService } from '../auth/auth.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user-dto.dto';
-/* eslint-disable prettier/prettier */
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { FindByUsername } from './providers/find-by-username.provider';
 import { Leaderboard } from 'src/leaderboard/entities/leaderboard.entity';
 import { CreateUserProvider } from './providers/create-user-provider.provider';
@@ -69,5 +67,13 @@ export class UsersService {
 
   public async FindByUsername(username: string) {
     return await this.findByUsername.FindOneByUsername(username);
+  }
+
+  public async findById(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 }

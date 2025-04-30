@@ -13,19 +13,19 @@ import {
   export class Scores {
     @PrimaryGeneratedColumn()
     id: number;
-  
+
     @ManyToOne(() => User, (user) => user.scores, { onDelete: 'CASCADE' })
     user: User;
-  
+
     @ManyToOne(() => Puzzles, (puzzle) => puzzle.scores, { onDelete: 'SET NULL' })
     puzzle: Puzzles;
-  
+
     @Column({ type: 'int', default: 0 })
     score: number;
-  
+
     @CreateDateColumn()
     createdAt: Date;
-  
+
     @UpdateDateColumn()
     updatedAt: Date;
   }

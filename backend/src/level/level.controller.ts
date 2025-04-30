@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { LevelService } from './level.service';
 import { CreateLevelDto } from './dto/create-level.dto';
 import { UpdateLevelDto } from './dto/update-level.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Auth } from '../auth/decorators/auth-decorator';
 import { AuthType } from '../auth/enums/auth-type.enum';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
@@ -34,13 +34,22 @@ export class LevelController {
     return this.levelService.findAll();
   }
 
+  @Get('total')
+  @Auth(AuthType.Bearer)
+  @ApiOperation({ summary: 'Get total number of levels' })
+  @ApiResponse({ status: 200, description: 'Return total number of levels.' })
+  getTotalLevels() {
+    return this.levelService.getTotalLevels();
+  }
+
   @Get(':id')
   @Auth(AuthType.Bearer)
   @ApiOperation({ summary: 'Get a level by id' })
   @ApiResponse({ status: 200, description: 'Return the level.' })
   @ApiResponse({ status: 404, description: 'Level not found.' })
-  findOne(@Param('id') id: string) {
-    return this.levelService.findOne(+id);
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.levelService.findOne(id);
   }
 
   @Patch(':id')
@@ -49,8 +58,9 @@ export class LevelController {
   @ApiResponse({ status: 200, description: 'Level successfully updated.' })
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
-  update(@Param('id') id: string, @Body() updateLevelDto: UpdateLevelDto) {
-    return this.levelService.update(+id, updateLevelDto);
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() updateLevelDto: UpdateLevelDto) {
+    return this.levelService.update(id, updateLevelDto);
   }
 
   @Delete(':id')
@@ -59,7 +69,8 @@ export class LevelController {
   @ApiResponse({ status: 200, description: 'Level successfully deleted.' })
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
-  remove(@Param('id') id: string) {
-    return this.levelService.remove(+id);
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.levelService.remove(id);
   }
 }

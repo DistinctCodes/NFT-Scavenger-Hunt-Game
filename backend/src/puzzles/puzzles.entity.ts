@@ -61,10 +61,19 @@ export class Puzzles {
   @OneToMany(() => Answers, (answer) => answer.puzzles)
   answers: Answers[];
 
+  @OneToMany(() => UserProgress, (userProgress) => userProgress.puzzles)
+  userProgress: UserProgress[];
+
   @BeforeInsert()
   async updateLevelCount() {
+<<<<<<< HEAD
+    if (this.level) {
+      await this.level.incrementCount(this.levelEnum);
+    }
+=======
       if (this.level) {
           await Level.incrementCount(this.levelEnum);
       }
+>>>>>>> b40c5d58a38f2cff0d7a4d88c0625c5f83073de4
   }
 }
