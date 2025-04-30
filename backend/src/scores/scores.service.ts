@@ -1,29 +1,31 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/users.entity';
 import { Repository } from 'typeorm';
 import { Scores } from './scores.entity';
+import { User } from 'src/users/users.entity';
 import { PuzzlesService } from 'src/puzzles/puzzles.service';
+import { CreateScoreDto } from './dto/create-score.dto';
+import { UsersService } from 'src/users/users.service';
+import { LeaderboardGateway } from 'src/leaderboard/leaderboard.gateway';
 
 @Injectable()
 export class ScoresService {
   constructor(
-
-    //deine repository injection for scores entity
     @InjectRepository(Scores)
-    private  scoresRepository: Repository<Scores>,
+    private readonly scoresRepository: Repository<Scores>,
 
-       //deine repository injection for user entity
     @InjectRepository(User)
-    private  userRepository: Repository<User>,
-
-    //define dependency injection for puzzle Service
+    private readonly userRepository: Repository<User>,
+    private readonly userService: UsersService,
     private readonly puzzleService: PuzzlesService,
+    private readonly leaderboardGateway: LeaderboardGateway
   ) {}
-  //fetch leaderboard with pagination
+
+  // Fetch leaderboard with pagination
   async getLeaderboard(page: number = 1, limit: number = 10) {
     const [users, total] = await this.userRepository.findAndCount({
-      order: { scores: 'DESC', updatedAt: 'ASC' },
+      relations: ['scores'],
+      order: { score: 'DESC', updatedAt: 'ASC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -36,21 +38,49 @@ export class ScoresService {
     };
   }
 
-  // Update or insert user score
-  async updateScore(username: string, score: number) {
-    const user = await this.userRepository.findOne({ where: { username } });
+  // Create a new score entry
+  async createScore(createScoreDto: CreateScoreDto) {
+    const { username, puzzleId, score } = createScoreDto;
+    
+    // Find or create user
+    const user = await this.userService.findOrCreateUser(username);
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException(`User ${username} not found`);
     }
 
-    // Create a new score entry
-    const scoreEntry = new Scores();
-    scoreEntry.score = score;
-    scoreEntry.user = user;
+    // Find puzzle
+    const puzzle = await this.puzzleService.findOne(puzzleId);
+    if (!puzzle) {
+      throw new NotFoundException(`Puzzle ${puzzleId} not found`);
+    }
 
-    // Save the new score
-    await this.scoresRepository.save(scoreEntry);
+    // Create and save score
+    const scoreEntry = this.scoresRepository.create({
+      user,
+      puzzle,
+      score
+    });
 
-    return user;
+    const savedScore = await this.scoresRepository.save(scoreEntry);
+
+    // Notify connected clients about the new score
+    this.leaderboardGateway.handleScoreUpdate({
+      username: user.username,
+      score: savedScore.score,
+      puzzleId: puzzle.id
+    });
+
+    return savedScore;
   }
+
+  // Get user's total score
+  async getUserTotalScore(username: string): Promise<number> {
+    const scores = await this.scoresRepository.find({
+      where: { user: { username } },
+      relations: ['user']
+    });
+
+    return scores.reduce((total, score) => total + score.score, 0);
+  }
+
 }

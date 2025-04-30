@@ -1,3 +1,5 @@
+import { Puzzles } from 'src/puzzles/puzzles.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LevelEnum } from 'src/enums/LevelEnum';
 import { Puzzles } from 'src/puzzles/puzzles.entity';
@@ -44,7 +46,6 @@ export class Level {
 
   @OneToMany(() => Puzzles, (puzzle) => puzzle.level)
   puzzles: Puzzles[];
-
   @Column({ type: 'int', default: 0 })
   count: number;
 
@@ -55,7 +56,7 @@ export class Level {
   })
   level: LevelEnum;
 
-  public async incrementCount(level: LevelEnum) {
+  public  async incrementCount(level: LevelEnum) {
     let levelRecord = await this.levelRepository.findOne({ where: { level } });
 this.levelRepository
     if (!levelRecord) {
