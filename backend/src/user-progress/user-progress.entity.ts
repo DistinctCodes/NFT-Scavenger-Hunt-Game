@@ -21,7 +21,7 @@ export class UserProgress {
     (puzzles) => puzzles.userProgress,
   )
   @JoinColumn({ name: "puzzleId" })
-  puzzles: Puzzles[]
+  puzzles: Puzzles
 
   @ManyToOne(
     () => Hints,

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserProvider } from './providers/create-user-provider.provider';
 import { CreateUserDto } from './dtos/create-user-dto.dto';
 import { FindByUsername } from './providers/find-by-username.provider';
@@ -33,6 +33,14 @@ export class UsersService {
 
   public async FindByUsername(username: string) {
     return await this.findByUsername.FindOneByUsername(username);
+  }
+
+  public async findById(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 }
 

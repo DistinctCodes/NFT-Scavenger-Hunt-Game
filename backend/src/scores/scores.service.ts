@@ -23,7 +23,7 @@ export class ScoresService {
   //fetch leaderboard with pagination
   async getLeaderboard(page: number = 1, limit: number = 10) {
     const [users, total] = await this.userRepository.findAndCount({
-      order: { scores: 'DESC', update_at: 'ASC' },
+      order: { scores: 'DESC', updatedAt: 'ASC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -38,14 +38,19 @@ export class ScoresService {
 
   // Update or insert user score
   async updateScore(username: string, score: number) {
-    let user = await this.userRepository.findOne({ where: { username } });
-    if (user) {
-      user.score = score;
-      // update score if user exists
-    } else {
-      user = this.userRepository.create({ username, score });
-      //create a new user if not found
+    const user = await this.userRepository.findOne({ where: { username } });
+    if (!user) {
+      throw new Error('User not found');
     }
-    return this.userRepository.save(user);
+
+    // Create a new score entry
+    const scoreEntry = new Scores();
+    scoreEntry.score = score;
+    scoreEntry.user = user;
+
+    // Save the new score
+    await this.scoresRepository.save(scoreEntry);
+
+    return user;
   }
 }

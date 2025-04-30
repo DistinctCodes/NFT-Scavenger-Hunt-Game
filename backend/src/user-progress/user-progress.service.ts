@@ -33,18 +33,30 @@ export class UserProgressService {
 
   async updateProgress(userId: number, puzzleId: number, hintId: number | null, completed: boolean): Promise<UserProgress> {
     let progress = await this.userProgressRepository.findOne({
-      where: { user: { id: userId }, puzzles: { id: puzzleId } },
+      where: { user: { id: userId } },
+      relations: ['user', 'puzzles', 'hints']
     })
 
     if (!progress) {
-      progress = this.userProgressRepository.create({
-        user: { id: userId },
-        puzzles: { id: puzzleId },
-      })
+      // Get the user and puzzle entities first
+      const user = await this.userservice.findById(userId)
+      const puzzle = await this.puzzleservice.getAPuzzle(puzzleId)
+      
+      if (!user || !puzzle) {
+        throw new Error('User or puzzle not found')
+      }
+
+      progress = this.userProgressRepository.create()
+      progress.user = user
+      progress.puzzles = puzzle
     }
 
     if (hintId) {
-      progress.hints = { id: hintId } as Hints
+      const hint = await this.hintservice.findById(hintId.toString())
+      if (!hint) {
+        throw new Error('Hint not found')
+      }
+      progress.hints = hint
       progress.hintsUsed += 1
     }
 
@@ -54,13 +66,17 @@ export class UserProgressService {
     return this.userProgressRepository.save(progress)
   }
 
-  async getUserScore(userId: number): Promise<number> {
-    const progress = await this.userProgressRepository.find({
-      where: { user: { id: userId }, completed: true },
-      relations: ["puzzle"],
+  async getUserScore(userId: number, puzzleId: number): Promise<number> {
+    const progress = await this.userProgressRepository.findOne({
+      where: { 
+        user: { id: userId },
+        puzzles: { id: puzzleId },
+        completed: true 
+      },
+      relations: ["puzzles"],
     })
 
-    return progress.reduce((total, p) => total + p.puzzles.pointValue, 0)
+    return progress?.puzzles?.pointValue || 0;
   }
 }
 
