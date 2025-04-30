@@ -180,10 +180,5 @@ export class UserProgressService {
     const solvedPuzzles = userProgress.filter(p => p.puzzles && puzzleIds.includes(p.puzzles.id)).length;
     const totalPuzzles = level.puzzles.length;
 
-    return {
-      progress: totalPuzzles > 0 ? (solvedPuzzles / totalPuzzles) * 100 : 0,
-      solved: solvedPuzzles,
-      total: totalPuzzles,
-    };
   }
 }
