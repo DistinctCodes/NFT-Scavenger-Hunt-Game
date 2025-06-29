@@ -1,5 +1,5 @@
 import React from "react";
-import NFTCard from "../NFTCard";
+import NFTCard from "../NftCard";
 
 
 const getRarityColor = (rarity) => {
