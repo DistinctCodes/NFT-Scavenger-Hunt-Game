@@ -32,13 +32,14 @@ import { StripeModule } from './stripe/stripe.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { EmailModule } from './email/email.module';
-import { UserActivityLogsModule } from './user-activity-logs/user-activity-logs.module';
+import { ActivityLogsModule } from './activity-logs/activity-logs.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { EmailChangeModule } from './email-change/email-change.module';
 import { ErrorLoggingModule } from './error-logging/error-logging.module';
 import { ErrorLoggingInterceptor } from './error-logging/interceptors/error-logging.interceptor';
 import { RefundsModule } from './refunds/refunds.module';
 import { PromoCodeModule } from './promo-code/promo-code.module';
+import { PuzzleUnlockModule } from './puzzle-unlock/puzzle-unlock.module';
 
 
 @Module({
@@ -82,7 +83,7 @@ import { PromoCodeModule } from './promo-code/promo-code.module';
     SubscriptionModule,
     EmailModule,
     EmailChangeModule,
-    UserActivityLogsModule,
+    ActivityLogsModule,
     AuditLogsModule,
     ApiTrackingModule,
    
@@ -93,6 +94,7 @@ import { PromoCodeModule } from './promo-code/promo-code.module';
     ErrorLoggingModule,
     RefundsModule,
     PromoCodeModule,
+    PuzzleUnlockModule,
   ],
   controllers: [AppController],
   providers: [
