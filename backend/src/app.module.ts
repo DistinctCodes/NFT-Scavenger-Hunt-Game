@@ -27,6 +27,7 @@ import { UserRankingModule } from './user-ranking/user-ranking.module';
 import { ProgressModule } from './progress/progress.module';
 import { ContentRatingModule } from './content-rating/content-rating.module';
 import { UserActivityLogModule } from "./user-activity-log/user-activity-log.module"
+import { DraftReviewsModule } from './draft-reviews/draft-reviews.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { UserActivityLogModule } from "./user-activity-log/user-activity-log.mod
     ProgressModule,           // <--- ProgressModule is kept
     ContentRatingModule,
     UserActivityLogModule,
+    DraftReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

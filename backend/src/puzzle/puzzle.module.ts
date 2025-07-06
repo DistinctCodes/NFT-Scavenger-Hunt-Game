@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '../auth/auth.module';
 import { Puzzle } from './puzzle.entity';
-import { PuzzleService } from './puzzle.service';
-import { PuzzleController } from './puzzle.controller';
+import { PuzzleSubmissionController } from 'src/puzzle-submission/puzzle-submission.controller';
+import { PuzzleSubmissionService } from 'src/puzzle-submission/puzzle-submission.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Puzzle])],
-  controllers: [PuzzleController],
-  providers: [PuzzleService],
-  exports: [PuzzleService],
+  imports: [TypeOrmModule.forFeature([Puzzle]), AuthModule],
+  controllers: [PuzzleSubmissionController],
+  providers: [PuzzleSubmissionService],
+  exports: [PuzzleSubmissionService],
 })
-export class PuzzleModule {}
+export class PuzzlesModule {}
